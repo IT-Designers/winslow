@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 env:
-  IMAGE_NAME_HTML: component-html
-  IMAGE_NAME_SERVER: component-server
+  IMAGE_HTML: component-html
+  IMAGE_SERVER: component-server
 on:
   push:
     branches:
@@ -27,6 +27,11 @@ jobs:
         run: |
           mvn clean test verify
           # TODO: Add coverage report
+      - name: Generate JaCoCo Badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          generate-branches-badge: true
+          jacoco-csv-file: ./application/target/site/jacoco/jacoco.csv
 
   build-component-server:
     runs-on: ubuntu-latest
@@ -102,45 +107,6 @@ jobs:
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
-  build-component-html-image:
-    needs: build-component-html
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Download frontend
-        uses: actions/download-artifact@v4
-        with:
-          name: winslow-ui-ng_${{ github.run_id }}
-          path: ./ui-ng/winslow-ui-ng
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and export
-        uses: docker/build-push-action@v5
-        with:
-          context: ./ui-ng
-          tags: html:latest
-          outputs: type=docker,dest=/tmp/html.tar
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: html
-          path: /tmp/html.tar
-
-  use-component-html-image:
-    runs-on: ubuntu-latest
-    needs: build-component-html-image
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: html
-          path: /tmp
-      - name: Load image
-        run: |
-          docker load --input /tmp/html.tar
-          docker image ls -a          
-
   deploy-winslow-node:
     runs-on: ubuntu-latest
     needs:
@@ -161,7 +127,7 @@ jobs:
           path: .
       - name: Build backend image
         run: |
-          docker build . -t $IMAGE_NAME_SERVER
+          docker build . -t $IMAGE_SERVER
 
       - name: Download frontend
         uses: actions/download-artifact@v4
@@ -172,7 +138,7 @@ jobs:
         run: |
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
-          docker build . -t $IMAGE_NAME_HTML
+          docker build . -t $IMAGE_HTML
 
       - name: Dockerhub login
         env:
@@ -184,31 +150,26 @@ jobs:
       - name: Build final image
         run: |
           cd node
-          TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/./g')
-          IMAGE_NAME=${{ vars.DOCKER_REGISTRY_WINSLOW }}
-          docker build . -t $IMAGE_NAME:$TAG --build-arg COMPONENT_HTML=$IMAGE_NAME_HTML --build-arg COMPONENT_SERVER=$IMAGE_NAME_SERVER
-          docker push $IMAGE_NAME:$TAG
+          if [[ "$GITHUB_REF" == "master" ]]; then
+            TAG=dev
+          elif [[ "$GITHUB_REF" == *tags* ]]; then
+            TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')
+          elif [[ "$GITHUB_REF" == *heads* ]]; then
+            if [[ "${GITHUB_REF##*/}" =~ ^20[0-9]{2}\.[0-9]+$  ]]; then
+              TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')-dev
+            fi
+          else
+            TAG=latest
+          fi 
+          IMAGE_WINSLOW=${{ vars.DOCKER_REGISTRY_WINSLOW }}
+          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker push $IMAGE_WINSLOW:$TAG
 
-
-  update-dockerhub-description:
-    needs: deploy-winslow-node
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/239-create-a-workflow-file-for-github' ||
-      github.ref == 'master' ||
-      github.ref == 'refs/heads/20**.*' ||
-      github.ref == 'refs/tags/20**.*'
-    steps:
       - uses: actions/checkout@v4
-      - name: Docker Hub Description
+      - name: Update Dockerhub description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
           repository: itdesigners1/winslow
           readme-filepath: ./node/README.md
-
-
-#### TODO: when to use latest and when to use the tag name from git?
-#### each push on 2024.1 will create a tag latest and 2024.1 / the last push on 2024.1 will automatically create a tag latest
-#### when a 2025.1 branch is created then it will be latest and 2025.1 so the 2024.1 will not change and is not latest anymore
-#### or should it be like latest is the last push on master/main and the tag is the tag from git?
