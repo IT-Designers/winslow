@@ -164,7 +164,7 @@ jobs:
             fi
           fi 
           TAG=${TAG:-latest}
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push winslow image
         run: |
