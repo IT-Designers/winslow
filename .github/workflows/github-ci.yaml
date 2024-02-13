@@ -81,6 +81,15 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: ui-ng/package-lock.json
+      - name: Cache ngx-sweetalert2
+        uses: actions/cache@v4
+        with:
+          path: |
+            ui-ng/.subtree/ngx-sweetalert2/dist
+            ui-ng/.subtree/ngx-sweetalert2/node_modules
+          key: ${{ runner.os }}-node_modules-ngx-sweetalert2-${{ hashFiles('ui-ng/.subtree/ngx-sweetalert2/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-ngx-sweetalert2-
       - name: Prepare build
         run: |
           cd ui-ng
@@ -161,7 +170,6 @@ jobs:
           echo "Pushing $IMAGE_WINSLOW:$TAG"
           docker push $IMAGE_WINSLOW:$TAG
 
-      - uses: actions/checkout@v4
       - name: Update Dockerhub description
         uses: peter-evans/dockerhub-description@v4
         with:
