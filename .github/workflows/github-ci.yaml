@@ -162,9 +162,8 @@ jobs:
             if [[ "${GITHUB_REF##*/}" =~ ^20[0-9]{2}\.[0-9]+$  ]]; then
               TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')-dev
             fi
-          else
-            TAG=latest
           fi 
+          TAG=${TAG:-latest}
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Build and push winslow image
