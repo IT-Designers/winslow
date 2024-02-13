@@ -117,8 +117,8 @@ jobs:
       - test-component-server
       - build-component-html
     if: github.ref == 'master' ||
-      github.ref == 'refs/heads/20**.*' ||
-      github.ref == 'refs/tags/20**.*'
+      github.ref == 'refs/heads/20[0-9][0-9].[0-9]+' ||
+      github.ref == 'refs/tags/20[0-9][0-9].[0-9]+'
     steps:
       - name: Determine image tag
         id: determine_tag
