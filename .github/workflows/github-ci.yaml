@@ -137,6 +137,9 @@ jobs:
     if: needs.publish-validator.outputs.TAG != ''
     needs:
       - publish-validator
+    env:
+      TAG: ${{ needs.publish-validator.outputs.TAG }}
+      IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
     steps:
       - uses: actions/checkout@v4
       - name: Download backend
@@ -166,15 +169,13 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Build and push winslow image
-        env:
-          TAG: ${{ needs.publish-validator.outputs.TAG }}
+      - name: Build winslow:${{ env.TAG }}
         run: |
-          IMAGE_WINSLOW=${{ vars.DOCKER_REGISTRY_WINSLOW }}
           cd node
-          echo "-------------------- BUILDING IMAGE: $IMAGE_WINSLOW:$TAG --------------------"
           docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
-          echo "-------------------- PUSHING IMAGE: $IMAGE_WINSLOW:$TAG --------------------"
+
+      - name: Push winslow:${{ env.TAG }}
+        run: |
           docker push $IMAGE_WINSLOW:$TAG
 
       - name: Update Dockerhub description
