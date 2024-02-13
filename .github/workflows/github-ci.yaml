@@ -103,6 +103,7 @@ jobs:
           path: winslow-ui-ng
 
   build-component-html-image:
+    needs: build-component-html
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
