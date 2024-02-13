@@ -1,7 +1,4 @@
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
-jacoco-csv-file: target/site/jacoco/jacoco.csv
-![Coverage](.github/badges/jacoco.svg)
-![Branches](.github/badges/branches.svg)
 # Winslow 
 
 ## Prerequisite

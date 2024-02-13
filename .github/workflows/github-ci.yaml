@@ -26,12 +26,6 @@ jobs:
       - name: Test
         run: |
           mvn clean test verify
-          # TODO: Add coverage report
-      - name: Generate JaCoCo Badge
-        uses: cicirello/jacoco-badge-generator@v2
-        with:
-          generate-branches-badge: true
-          jacoco-csv-file: ./application/target/site/jacoco/jacoco.csv
 
   build-component-server:
     runs-on: ubuntu-latest
@@ -161,8 +155,10 @@ jobs:
           else
             TAG=latest
           fi 
+          TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')
           IMAGE_WINSLOW=${{ vars.DOCKER_REGISTRY_WINSLOW }}
           docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          echo "Pushing $IMAGE_WINSLOW:$TAG"
           docker push $IMAGE_WINSLOW:$TAG
 
       - uses: actions/checkout@v4
