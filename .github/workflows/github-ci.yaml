@@ -122,8 +122,23 @@ jobs:
       github.ref == 'refs/heads/20**.*' ||
       github.ref == 'refs/tags/20**.*'
     steps:
-      - uses: actions/checkout@v4
+      - name: Determine image tag
+        id: determine_tag
+        run: |
+          if [[ "$GITHUB_REF" == "master" ]]; then
+            TAG=dev
+          elif [[ "$GITHUB_REF" == *tags* ]]; then
+            TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')
+          elif [[ "$GITHUB_REF" == *heads* && "${GITHUB_REF##*/}" =~ ^20[0-9]{2}\.[0-9]+$ ]]; then
+            TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')-dev
+          else
+            echo "Unknown GITHUB_REF: $GITHUB_REF"
+            exit 1
+          fi 
+          TAG=${TAG:-latest}
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
+      - uses: actions/checkout@v4
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
@@ -150,21 +165,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
-
-      - name: Determine image tag
-        id: determine_tag
-        run: |
-          if [[ "$GITHUB_REF" == "master" ]]; then
-            TAG=dev
-          elif [[ "$GITHUB_REF" == *tags* ]]; then
-            TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')
-          elif [[ "$GITHUB_REF" == *heads* ]]; then
-            if [[ "${GITHUB_REF##*/}" =~ ^20[0-9]{2}\.[0-9]+$  ]]; then
-              TAG=$(echo ${GITHUB_REF##*/} | sed 's/[^a-zA-Z0-9]/-/g')-dev
-            fi
-          fi 
-          TAG=${TAG:-latest}
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and push winslow image
         run: |
