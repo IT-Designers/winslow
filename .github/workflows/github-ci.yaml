@@ -133,7 +133,6 @@ jobs:
             echo "Unknown GITHUB_REF: $GITHUB_REF"
             exit 1
           fi 
-          TAG=${TAG:-latest}
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
