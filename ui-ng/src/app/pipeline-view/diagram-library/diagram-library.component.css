@@ -1,3 +1,7 @@
+.outer-container {
+  border-radius: 5px;
+}
+
 .drag {
   border-top: 1px solid #7f7f7f;
   border-bottom: 1px solid #7f7f7f;
@@ -6,6 +10,7 @@
   background-color: var(--color-background-dark);
   color: var(--font-color);
 }
+
 
 .library-icons-container {
   display: flex;
@@ -91,6 +96,11 @@
   margin-bottom: auto;
   margin-top: auto;
 }
+.iconCancel:hover {
+  background-color: whitesmoke;
+  border-radius: 10px;
+}
+
 .unsaved-data{
   color: #FF0D0D;
 }
