@@ -7,5 +7,5 @@
   padding: 1px !important;
 }
 :host ::ng-deep .dm-panel{
-
+  border-radius: 5px;
 }
