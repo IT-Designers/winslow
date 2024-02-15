@@ -41,7 +41,7 @@ import {DiagramConfigHelper} from './diagram-config-helper';
 import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
-import {PipelineDefinitionInfo, Raw, StageDefinitionInfo, StageDefinitionInfoUnion,} from '../api/winslow-api';
+import {PipelineDefinitionInfo, StageDefinitionInfo, StageDefinitionInfoUnion,} from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
 
@@ -426,7 +426,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     this.pipelineDefinitionEdit = this.pipelineDefinition;
   }
 
-  editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
+  editState(editForm: PipelineDefinitionInfo) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -448,7 +448,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     }
   }
 
-  createElement(stageData: Raw<StageDefinitionInfo>, createAction: CreateNodeAction<StageDefinitionInfo>) { //helper function used for the intercepted createNode Actions
+  createElement(stageData: StageDefinitionInfo, createAction: CreateNodeAction<StageDefinitionInfo>) { //helper function used for the intercepted createNode Actions
     let nodeWidth: number;
     if (createAction.payload.typeId == 'node-normal') {
       nodeWidth = 200

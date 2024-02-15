@@ -4,7 +4,7 @@ import {createRangedList, createRangeWithStepSize, createWorkspaceConfiguration,
 import {
   EnvVariable,
   ExecutionGroupInfo,
-  ImageInfo, isRangedList, isRangeWithStepSize,
+  ImageInfo,
   PipelineDefinitionInfo,
   RangedValueUnion,
   ResourceInfo,
@@ -13,6 +13,10 @@ import {
   WorkspaceConfiguration,
   WorkspaceMode
 } from '../api/winslow-api';
+
+import {
+  isRangedList, isRangeWithStepSize,
+} from "../api/pipeline-api.service";
 import {parseArgsStringToArgv} from "string-argv";
 
 

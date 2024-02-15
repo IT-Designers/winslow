@@ -4,7 +4,7 @@
       <mat-expansion-panel [expanded]="this.data.projects.length == 1">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            {{ project[0].name }}
+            {{ project[0].fileInfo.name }}
           </mat-panel-title>
           <mat-panel-description>
             {{ project[0].getFileSizeHumanReadable() }}
@@ -13,7 +13,7 @@
         <div class="content-list">
           @for (entry of project[1];track $index) {
             <div class="content-item">
-              <span>{{ entry.name }}</span><span
+              <span>{{ entry.fileInfo.name }}</span><span
               class="align-right-using-margin">{{ entry.getFileSizeHumanReadable() }}</span>
             </div>
           }
