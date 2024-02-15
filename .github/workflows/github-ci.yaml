@@ -1,0 +1,187 @@
+name: CI/CD Pipeline
+env:
+  IMAGE_HTML: component-html
+  IMAGE_SERVER: component-server
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  workflow_dispatch:
+    branches:
+      - '**'
+
+jobs:
+  test-component-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Test
+        run: |
+          mvn test
+
+  build-component-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Setup 'Build.java' information
+        run: |
+          export COMMIT_HASH_LONG=${{ github.sha }}
+          export COMMIT_HASH_SHORT=$(git rev-parse --short=7 ${{ github.sha }})
+          sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+          sed -i "s/external__COMMIT_HASH_SHORT/$COMMIT_HASH_SHORT}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
+      - name: Build
+        run: |
+          mvn package -DskipTests
+      - name: Prepare upload jar files
+        run: |
+          cp application/target/winslow*.jar .
+          cp api/target/winslow*.jar .
+      - name: Upload jar files
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          compression-level: 9
+          name: jar-files-${{ github.run_id }}
+          path: |
+            winslow*.jar
+
+  build-component-html:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: create winslow-api.ts
+        run: |
+          cd api
+          mvn compile typescript-generator:generate
+          cd ..
+      - name: copy winslow-api.ts to ui-ng
+        run: |
+          cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ui-ng/package-lock.json
+      # This is only needed to speed up the ngx-sweetalert2 build process, delete if not needed
+      - name: Cache ngx-sweetalert2
+        uses: actions/cache@v4
+        with:
+          path: |
+            ui-ng/.subtree/ngx-sweetalert2/dist
+            ui-ng/.subtree/ngx-sweetalert2/node_modules
+          key: ${{ runner.os }}-node_modules-ngx-sweetalert2-${{ hashFiles('ui-ng/.subtree/ngx-sweetalert2/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-ngx-sweetalert2-
+      - name: Prepare build
+        run: |
+          cd ui-ng
+          npm install
+      - name: Build
+        run: |
+          cd ui-ng
+          npm run build --omit=dev --baseHref=/ --deployUrl=/
+      - name: Prepare upload
+        run: |
+          cd ui-ng
+          mv dist/winslow-ui-ng ../winslow-ui-ng
+      - name: Upload winslow-ui-ng
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          compression-level: 9
+          name: winslow-ui-ng_${{ github.run_id }}
+          path: winslow-ui-ng
+
+  publish-validator:
+    runs-on: ubuntu-latest
+    needs:
+      - test-component-server
+      - build-component-server
+      - build-component-html
+    outputs:
+      TAG: ${{ steps.determine_tag.outputs.TAG }}
+    steps:
+      - name: Determine image tag
+        id: determine_tag
+        run: |
+          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+            TAG=dev
+          elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            TAG=${GITHUB_REF_NAME}
+          elif [[ "$GITHUB_REF_TYPE" == "branch" && "$GITHUB_REF_NAME" =~ ^20[0-9]{2}\.[0-9]+$ ]]; then
+            TAG=${GITHUB_REF_NAME}-dev
+          fi 
+          echo $TAG
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          
+  publish-winslow-image:
+    runs-on: ubuntu-latest
+    if: needs.publish-validator.outputs.TAG != ''
+    needs:
+      - publish-validator
+    env:
+      TAG: ${{ needs.publish-validator.outputs.TAG }}
+      IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download backend
+        uses: actions/download-artifact@v4
+        with:
+          name: jar-files-${{ github.run_id }}
+          path: .
+      - name: Build backend image
+        run: |
+          docker build . -t $IMAGE_SERVER
+
+      - name: Download frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: winslow-ui-ng_${{ github.run_id }}
+          path: ./winslow-ui-ng
+      - name: Build frontend image
+        run: |
+          mv winslow-ui-ng ui-ng/winslow-ui-ng
+          cd ui-ng
+          docker build . -t $IMAGE_HTML
+
+      - name: Dockerhub login
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
+
+      - name: Build winslow:${{ env.TAG }}
+        run: |
+          cd node
+          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+
+      - name: Push winslow:${{ env.TAG }}
+        run: |
+          docker push $IMAGE_WINSLOW:$TAG
+
+      - name: Update Dockerhub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
+          repository: itdesigners1/winslow
+          readme-filepath: ./node/README.md
