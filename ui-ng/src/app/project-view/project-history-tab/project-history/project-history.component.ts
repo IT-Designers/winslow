@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectApiService} from '../../../api/project-api.service';
 import {ExecutionGroupInfo, StageInfo, State} from '../../../api/winslow-api';
+import {ExecutionGroupInfoHelper} from "../../../api/project-api.service";
 
 @Component({
   selector: 'app-project-history',
@@ -12,18 +12,20 @@ export class ProjectHistoryComponent implements OnInit {
 
   visibleStages = 10;
 
+  @Input() executionGroup!: ExecutionGroupInfoHelper;
+
   @Input() firstEntry = true;
   @Input() entryNumber = 0;
-  @Input() executionGroup: ExecutionGroupInfo;
   @Input() expanded = false;
-  @Input() pipelineIsPaused: boolean = null;
   @Input() active = false;
-  @Input() projectState: State;
 
-  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickResume = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickDelete = new EventEmitter<ExecutionGroupInfo>();
-  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfo>();
+  @Input() projectState?: State;
+  @Input() pipelineIsPaused: boolean = false;
+
+  @Output() clickResumeOnlyThisStage = new EventEmitter<ExecutionGroupInfoHelper>();
+  @Output() clickResume = new EventEmitter<ExecutionGroupInfoHelper>();
+  @Output() clickDelete = new EventEmitter<ExecutionGroupInfoHelper>();
+  @Output() clickPauseAfterThis = new EventEmitter<ExecutionGroupInfoHelper>();
   @Output() clickKillStage = new EventEmitter<StageInfo>();
   @Output() clickUseAsBlueprint = new EventEmitter<StageInfo>();
   @Output() clickOpenWorkspace = new EventEmitter<StageInfo>();
@@ -32,10 +34,9 @@ export class ProjectHistoryComponent implements OnInit {
   @Output() clickOpenTensorboard = new EventEmitter<StageInfo>();
   @Output() clickGetStage = new EventEmitter<StageInfo>();
 
-  selectedStageIndex: number;
+  selectedStageIndex: number = 0;
 
-  constructor(private cdr: ChangeDetectorRef,
-              private api: ProjectApiService) {
+  constructor(private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -44,19 +45,7 @@ export class ProjectHistoryComponent implements OnInit {
 
   setSelectedStageIndexAndEmitStage() {
     this.selectedStageIndex = 0;
-    this.clickGetStage.emit(this.executionGroup.stages[this.executionGroup.stages.length - 1]);
-  }
-
-  getRangeEnvVariableValues(stage: StageInfo): string {
-    if (this.executionGroup.getGroupSize() > 1) {
-      return [...this.executionGroup
-        .rangedValuesKeys()]
-        .sort()
-        .map(e => e + '=' + stage.env[e])
-        .join(', ');
-    } else {
-      return null;
-    }
+    this.clickGetStage.emit(this.executionGroup.executionGroupInfo.stages[this.executionGroup.executionGroupInfo.stages.length - 1]);
   }
 
   set initiallyVisibleStages(count: number) {
@@ -68,6 +57,4 @@ export class ProjectHistoryComponent implements OnInit {
     this.visibleStages += increment;
     this.cdr.markForCheck();
   }
-
-
 }

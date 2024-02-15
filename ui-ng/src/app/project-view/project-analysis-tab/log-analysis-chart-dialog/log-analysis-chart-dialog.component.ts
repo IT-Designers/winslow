@@ -1,9 +1,10 @@
 import {Component, Inject, OnDestroy} from '@angular/core';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
-import {ChartAxisType, AnalysisChart, ChartDefinition, ChartSnapShot} from '../chart-definition';
+import {AnalysisChart, ChartSnapShot} from '../chart-definition';
 import {Observable, Subscription} from 'rxjs';
 import {CsvFile, CsvFilesService} from '../csv-files.service';
 import {map} from "rxjs/operators";
+import {ChartDefinition, ChartAxisType} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-log-analysis-chart-dialog',
@@ -12,7 +13,12 @@ import {map} from "rxjs/operators";
 })
 export class LogAnalysisChartDialogComponent implements OnDestroy {
 
-  AxisTypes = Object.values(ChartAxisType);
+  // These are values from ChartAxisType from winslow-api.ts
+  value: ChartAxisType = 'VALUE';
+  log: ChartAxisType = 'LOG';
+  time: ChartAxisType = 'TIME';
+  AxisTypes = [this.value, this.log, this.time];
+
   chart: AnalysisChart;
   definition: ChartDefinition;
   latestSnapshot: ChartSnapShot | undefined;

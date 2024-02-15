@@ -49,20 +49,20 @@
   @for (entry of enqueued;track $index) {
     <app-project-history-header
       [state]="entry.getMostRelevantState(stateValue)"
-      [isConfigure]="entry.configureOnly"
+      [isConfigure]="entry.executionGroupInfo.configureOnly"
       [itemNo]="enqueued.length - $index"
       [time]="entry.getMostRecentStartOrFinishTime()"
-      [stageName]="entry.stageDefinition.name"
+      [stageName]="entry.executionGroupInfo.stageDefinition.name"
       [showResumeOnlyThisStage]="entry.enqueueIndex == 0"
       [enqueued]="entry.enqueueIndex != null"
       [running]="entry.isMostRecentStateRunning()"
       [paused]="!!statePaused"
 
-      (clickPauseAfterThis)="clickPause.emit(entry)"
-      (clickResumeOnlyThisStage)="clickResumeSingle.emit(entry)"
-      (clickResume)="clickResume.emit(entry)"
-      (clickDelete)="clickDeleteEnqueued.emit(entry)"
-      (clickUseAsBlueprint)="clickUseAsBlueprint.emit([entry, undefined])"
+      (clickPauseAfterThis)="clickPause.emit(entry.executionGroupInfo)"
+      (clickResumeOnlyThisStage)="clickResumeSingle.emit(entry.executionGroupInfo)"
+      (clickResume)="clickResume.emit(entry.executionGroupInfo)"
+      (clickDelete)="clickDeleteEnqueued.emit(entry.executionGroupInfo)"
+      (clickUseAsBlueprint)="clickUseAsBlueprint.emit([entry.executionGroupInfo, undefined])"
     ></app-project-history-header>
   }
 </div>

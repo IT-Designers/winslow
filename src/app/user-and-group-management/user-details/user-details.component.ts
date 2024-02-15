@@ -19,7 +19,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
 
   canIEditUser = false;
   newPassword = '';
-  editableSelectedUser: UserInfo = {active: false, displayName: "", email: "", name: "", password: ""};
+  editableSelectedUser: UserInfo = {active: false, displayName: "", email: "", name: "", password: [""]};
 
   hasAnythingChanged = false;
 
@@ -64,7 +64,7 @@ export class UserDetailsComponent implements OnInit, OnChanges {
     this.dialog.openLoadingIndicator(this.userApi.setPassword(user.name, password)
         .then(() => {
           this.newPassword = '';
-          user.password = '********';
+          user.password?.push('********');
           this.selectedUser = user;
         }),
       'Updating Password');

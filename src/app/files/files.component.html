@@ -26,21 +26,21 @@
       <ng-template #fileTree let-path="path">
         @for (file of directories(path);track $index) {
           <li>
-            <p class="directory" [attr.data-path]="file.path">
+            <p class="directory" [attr.data-path]="file.fileInfo.path">
               <i
-                [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
-                (click)="toggleLoadDirectory(file.path)">{{ directories(file.path) != null ? 'arrow_drop_down' : 'arrow_right' }}
+                [class]="['material-icons-outlined', 'directory-toggle', directories(file.fileInfo.path) != null ? 'directory-close' : 'directory-open']"
+                (click)="toggleLoadDirectory(file.fileInfo.path)">{{ directories(file.fileInfo.path) != null ? 'arrow_drop_down' : 'arrow_right' }}
               </i>
               <i
-                [class]="['material-icons-outlined', 'directory-toggle', directories(file.path) != null ? 'directory-close' : 'directory-open']"
-                (click)="toggleLoadDirectory(file.path)">{{ directories(file.path) != null ? 'folder_open' : 'folder' }}
+                [class]="['material-icons-outlined', 'directory-toggle', directories(file.fileInfo.path) != null ? 'directory-close' : 'directory-open']"
+                (click)="toggleLoadDirectory(file.fileInfo.path)">{{ directories(file.fileInfo.path) != null ? 'folder_open' : 'folder' }}
                 <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
               </i>
-              <label (click)="viewDirectory(file.path)">{{ file.name + formatGitBranch(file) }}</label>
+              <label (click)="viewDirectory(file.fileInfo.path)">{{ file.fileInfo.name + formatGitBranch(file) }}</label>
             </p>
             <ul>
               <ng-container
-                *ngTemplateOutlet="fileTree; context:{ path: file.path }"></ng-container>
+                *ngTemplateOutlet="fileTree; context:{ path: file.fileInfo.path }"></ng-container>
             </ul>
           </li>
         }
@@ -57,20 +57,20 @@
           (onFileDropped)="uploadFile($event)"
       >
         @for (file of this.currentDirectory();track $index) {
-          <li class="file" (click)="onItemSelected(file)">
-            <i class="material-icons-outlined">{{ file.directory ? 'folder' : 'description' }}
+          <li class="file" (click)="onItemSelected(file.fileInfo)">
+            <i class="material-icons-outlined">{{ file.fileInfo.directory ? 'folder' : 'description' }}
               <ng-container *ngTemplateOutlet="gitLogo; context: { file: file }"></ng-container>
             </i>
-            <label class="file-name">{{ file.name }}</label>
-            <label class="last-modified">{{ timeStampToDate(file.attributes['last-modified']) }}</label>
+            <label class="file-name">{{ file.fileInfo.name }}</label>
+            <label class="last-modified">{{ timeStampToDate(file.fileInfo.attributes['last-modified']) }}</label>
             <label class="action-area file-size file-size-human-readable">{{ file.getFileSizeHumanReadable() }}</label>
-            <i class="material-icons-outlined action-area" (click)="rename(file)">edit</i>
+            <i class="material-icons-outlined action-area" (click)="rename(file.fileInfo)">edit</i>
             <i class="material-icons-outlined action-area">
-              <a [href]="downloadUrl(file)" target="_blank" (click)="downloadFile(file)">
+              <a [href]="downloadUrl(file.fileInfo)" target="_blank" (click)="downloadFile(file.fileInfo)">
                 cloud_download
               </a>
             </i>
-            <i class="material-icons-outlined action-area" (click)="delete(file)">delete</i>
+            <i class="material-icons-outlined action-area" (click)="delete(file.fileInfo)">delete</i>
           </li>
         }
       </ul>

@@ -70,7 +70,7 @@
 
               [executionGroup]="entry"
               [firstEntry]="$index == 0"
-              [entryNumber]="tryParseStageNumber(entry.id, history.length - $index)"
+              [entryNumber]="tryParseStageNumber(entry.executionGroupInfo.id, history.length - $index)"
               [expanded]="selectedHistoryEntry === entry"
               [pipelineIsPaused]="paused ?? false"
               [projectState]="stateValue"
@@ -80,10 +80,10 @@
 
               (clickResume)="updateRequestPause(false)"
               (clickResumeOnlyThisStage)="updateRequestPause(false, true)"
-              (clickDelete)="cancelEnqueuedStage(entry.id)"
+              (clickDelete)="cancelEnqueuedStage(entry.executionGroupInfo.id)"
               (clickPauseAfterThis)="updateRequestPause(true)"
               (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-              (clickUseAsBlueprint)="useAsBlueprint(entry, $event)"
+              (clickUseAsBlueprint)="useAsBlueprint(entry.executionGroupInfo, $event)"
               (clickOpenWorkspace)="openWorkspace($event)"
               (clickOpenLogs)="openLogs($event)"
               (clickOpenAnalysis)="openAnalysis($event)"
@@ -96,12 +96,12 @@
       <div *ngIf="history.length > 0">
         <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
-          [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].id, history.length)"
-          [selectedStage]="selectedHistoryEntryStage ??  history[0].stages[history[0].stages.length-1]"
+          [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].executionGroupInfo.id, history.length)"
+          [selectedStage]="selectedHistoryEntryStage ??  history[0].executionGroupInfo.stages[history[0].executionGroupInfo.stages.length-1]"
           [projectState]="stateValue"
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-          (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
+          (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry?.executionGroupInfo, $event)"
           (clickOpenWorkspace)="openWorkspace($event)"
           (clickOpenLogs)="openLogs($event)"
           (clickOpenAnalysis)="openAnalysis($event)"

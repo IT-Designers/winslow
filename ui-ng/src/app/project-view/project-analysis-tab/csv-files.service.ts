@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {FilesApiService} from '../../api/files-api.service';
+import {FileInfoHelper, FilesApiService} from '../../api/files-api.service';
 import {BehaviorSubject, combineLatest, from, Observable, of, timer} from 'rxjs';
 import {GlobalChartSettings, LocalStorageService} from '../../api/local-storage.service';
 import {finalize, map, shareReplay, switchMap} from 'rxjs/operators';
@@ -87,17 +87,17 @@ export class CsvFilesService {
 
     const topLevelFileInfos = await api.listFiles(topLevelPath);
 
-    async function walk(fileInfos: FileInfo[]) {
+    async function walk(fileInfos: FileInfoHelper[]) {
       for (const fileInfo of fileInfos) {
-        const relativePath = fileInfo.path.substring(topLevelPath.length);
-        if (fileInfo.directory) {
-          await walk(await api.listFiles(fileInfo.path));
+        const relativePath = fileInfo.fileInfo.path.substring(topLevelPath.length);
+        if (fileInfo.fileInfo.directory) {
+          await walk(await api.listFiles(fileInfo.fileInfo.path));
           continue;
         }
         if (!relativePath.startsWith(currentPath)) {
           continue;
         }
-        if (fileInfo.name.toLowerCase().endsWith('.csv')) {
+        if (fileInfo.fileInfo.name.toLowerCase().endsWith('.csv')) {
           paths.push(relativePath);
         }
       }

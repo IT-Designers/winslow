@@ -10,7 +10,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {ProjectApiService,} from '../api/project-api.service';
+import {ExecutionGroupInfoHelper, ProjectApiService,} from '../api/project-api.service';
 import {MatTabGroup} from '@angular/material/tabs';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {PipelineApiService} from '../api/pipeline-api.service';
@@ -106,7 +106,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   stageIdToDisplayLogsFor?: string;
   stateValue?: State;
 
-  history: ExecutionGroupInfo[] = [];
+  history: ExecutionGroupInfoHelper[] = [];
   subscribedProjectId?: string;
   historySubscription?: Subscription;
   historyEnqueued = 0;
@@ -132,7 +132,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   paramsSubscription?: Subscription;
 
   historyListHeight: any;
-  selectedHistoryEntry?: ExecutionGroupInfo;
+  selectedHistoryEntry?: ExecutionGroupInfoHelper;
   selectedHistoryEntryNumber?: number;
   selectedHistoryEntryIndex = 0;
   selectedHistoryEntryStage?: StageInfo;
@@ -156,14 +156,14 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
 
-  setHistoryEntry(entry: ExecutionGroupInfo, index: number) {
+  setHistoryEntry(entry: ExecutionGroupInfoHelper, index: number) {
     this.selectedHistoryEntry = entry;
-    this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.id, this.history.length - index);
+    this.selectedHistoryEntryNumber = this.tryParseStageNumber(entry.executionGroupInfo.id, this.history.length - index);
     this.selectedHistoryEntryIndex = index;
 
-    if (entry.stages.length === 1) {
-      this.selectedHistoryEntryStage = entry.stages[0];
-    } else if (entry.stages.length < 1) {
+    if (entry.executionGroupInfo.stages.length === 1) {
+      this.selectedHistoryEntryStage = entry.executionGroupInfo.stages[0];
+    } else if (entry.executionGroupInfo.stages.length < 1) {
       this.selectedHistoryEntryStage = new StageInfo({
         env: {},
         envInternal: {},
@@ -455,7 +455,7 @@ export class ProjectViewComponent implements OnInit, OnDestroy, OnChanges {
 
   loadMoreHistoryEntries(count: number = 1) {
     const projectId = this.projectValue.id;
-    const groupId = this.history[this.history.length - 1].id;
+    const groupId = this.history[this.history.length - 1].executionGroupInfo.id;
     this.historyCanLoadMoreEntries = false;
     // this.dialog.openLoadingIndicator(
     //   this.api.getProjectPartialHistory(

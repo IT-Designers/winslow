@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {FilesApiService} from '../api/files-api.service';
+import {FileInfoHelper, FilesApiService} from '../api/files-api.service';
 import {DialogService} from '../dialog.service';
 import {FileInfo, ProjectInfo} from '../api/winslow-api';
 
@@ -15,7 +15,7 @@ export interface ProjectDiskUsageDialogData {
 })
 export class ProjectDiskUsageDialogComponent implements OnInit {
 
-  projects: [FileInfo, FileInfo[]][] = [];
+  projects: [FileInfoHelper, FileInfoHelper[]][] = [];
 
   constructor(
     public dialogRef: MatDialogRef<ProjectDiskUsageDialogComponent>,
@@ -25,7 +25,7 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    const projects: [FileInfo, FileInfo[]][] = [];
+    const projects: [FileInfoHelper, FileInfoHelper[]][] = [];
     const promises: Promise<any>[] = [];
 
     for (const project of this.data.projects) {
@@ -33,14 +33,14 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
       promises.push(this.files
         .listFiles(path, true)
         .then(r => {
-          const info = new FileInfo({
+          const info = new FileInfoHelper({
             name:  project.name,
             directory: true,
             path,
-            fileSize:  r.map(f => f.fileSize).reduce((s1, s2) => (s1 ?? 0) + (s2 ?? 0), 0),
+            fileSize:  r.map(f => f.fileInfo.fileSize).reduce((s1, s2) => (s1 ?? 0) + (s2 ?? 0), 0),
             attributes: {}
           } as FileInfo);
-          projects.push([info, r.sort((a, b) => (a.fileSize ?? 0) < (b.fileSize ?? 0) ? 1 : -1)]);
+          projects.push([info, r.sort((a, b) => (a.fileInfo.fileSize ?? 0) < (b.fileInfo.fileSize ?? 0) ? 1 : -1)]);
         }));
     }
 
@@ -55,6 +55,6 @@ export class ProjectDiskUsageDialogComponent implements OnInit {
   }
 
   sortProjects() {
-    this.projects.sort((a, b) => (a[0].fileSize ?? 0) < (b[0].fileSize ?? 0) ? 1 : -1);
+    this.projects.sort((a, b) => (a[0].fileInfo.fileSize ?? 0) < (b[0].fileInfo.fileSize ?? 0) ? 1 : -1);
   }
 }

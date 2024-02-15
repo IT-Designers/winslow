@@ -1,27 +1,27 @@
 <mat-expansion-panel
-*ngIf="executionGroup.stages.length > 1"
+*ngIf="executionGroup.executionGroupInfo.stages.length > 1"
 [expanded]="expanded"
 [class.active]="active">
   <mat-expansion-panel-header class="header" [class.active]="active">
     <mat-panel-title>
       <app-project-history-header
         [state]="executionGroup.getMostRelevantState(projectState)"
-        [isConfigure]="executionGroup.configureOnly"
+        [isConfigure]="executionGroup.executionGroupInfo.configureOnly"
         [itemNo]="entryNumber"
         [time]="executionGroup.getMostRecentStartOrFinishTime()"
-        [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
-        [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
-        [showActiveControls]="firstEntry || executionGroup.active"
-        [showPassiveControls]="firstEntry || executionGroup.active"
+        [stageName]="executionGroup.executionGroupInfo.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+        [showResumeOnlyThisStage]="firstEntry || executionGroup.executionGroupInfo.active"
+        [showActiveControls]="firstEntry || executionGroup.executionGroupInfo.active"
+        [showPassiveControls]="firstEntry || executionGroup.executionGroupInfo.active"
         [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
-        [showKillCurrentStage]="executionGroup.active"
+        [showKillCurrentStage]="executionGroup.executionGroupInfo.active"
         [enqueued]="executionGroup.enqueueIndex != null"
-        [running]="executionGroup.active || executionGroup.isMostRecentStateRunning()"
+        [running]="executionGroup.executionGroupInfo.active || executionGroup.isMostRecentStateRunning()"
         [paused]="pipelineIsPaused"
-        [comment]="executionGroup.comment"
+        [comment]="executionGroup.executionGroupInfo.comment"
         [groupSize]="executionGroup.getGroupSize()"
-        [sharedWorkspace]="executionGroup.workspaceConfiguration.sharedWithinGroup"
-        [nestedWorkspace]="executionGroup.workspaceConfiguration.nestedWithinGroup"
+        [sharedWorkspace]="executionGroup.executionGroupInfo.workspaceConfiguration.sharedWithinGroup"
+        [nestedWorkspace]="executionGroup.executionGroupInfo.workspaceConfiguration.nestedWithinGroup"
 
 
         (click)="setSelectedStageIndexAndEmitStage()"
@@ -48,23 +48,23 @@
       (clickOpenAnalysis)="clickOpenAnalysis.emit($event)"
       (clickOpenTensorboard)="clickOpenTensorboard.emit($event)"
     ></app-project-history-group-info>
-    <div *ngIf="executionGroup.stages.length > visibleStages"
+    <div *ngIf="executionGroup.executionGroupInfo.stages.length > visibleStages"
          class="history-more-buttons whitespace-separator-top horizontal-center-with-margin">
       <button mat-stroked-button color="primary"
-              [disabled]="executionGroup.stages.length <= visibleStages"
+              [disabled]="executionGroup.executionGroupInfo.stages.length <= visibleStages"
               (click)="incrementVisibleStagesBy(10)">
         <mat-icon>arrow_drop_down</mat-icon>
         Show 10 More
       </button>
       <button mat-stroked-button color="primary"
-              [disabled]="executionGroup.stages.length <= visibleStages"
+              [disabled]="executionGroup.executionGroupInfo.stages.length <= visibleStages"
               (click)="incrementVisibleStagesBy(50)">
         <mat-icon>expand_more</mat-icon>
         Show 50 More
       </button>
       <button mat-stroked-button color="primary"
-              [disabled]="executionGroup.stages.length <= visibleStages"
-              (click)="incrementVisibleStagesBy(executionGroup.stages.length + 500)">
+              [disabled]="executionGroup.executionGroupInfo.stages.length <= visibleStages"
+              (click)="incrementVisibleStagesBy(executionGroup.executionGroupInfo.stages.length + 500)">
         <mat-icon>arrow_downward</mat-icon>
         Show All
       </button>
@@ -72,53 +72,53 @@
   </div>
 </mat-expansion-panel>
 
-<div *ngIf="executionGroup.stages.length == 1" class="history-header header" [class.active]="active">
+<div *ngIf="executionGroup.executionGroupInfo.stages.length == 1" class="history-header header" [class.active]="active">
   <app-project-history-header
     [itemNo]="entryNumber"
     [time]="executionGroup.getMostRecentStartOrFinishTime()"
-    [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+    [stageName]="executionGroup.executionGroupInfo.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
     [state]="executionGroup.getMostRelevantState(projectState)"
-    [isConfigure]="executionGroup.configureOnly"
-    [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
-    [showActiveControls]="firstEntry || executionGroup.active"
-    [showPassiveControls]="executionGroup.stages[0].workspace != undefined"
+    [isConfigure]="executionGroup.executionGroupInfo.configureOnly"
+    [showResumeOnlyThisStage]="firstEntry || executionGroup.executionGroupInfo.active"
+    [showActiveControls]="firstEntry || executionGroup.executionGroupInfo.active"
+    [showPassiveControls]="executionGroup.executionGroupInfo.stages[0].workspace != undefined"
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
-    [showKillCurrentStage]="executionGroup.active"
+    [showKillCurrentStage]="executionGroup.executionGroupInfo.active"
     [enqueued]="executionGroup.enqueueIndex != null"
-    [running]="executionGroup.stages[0].state == 'RUNNING'"
-    [paused]="executionGroup.stages[0].state == 'PAUSED'"
-    [comment]="executionGroup.comment"
+    [running]="executionGroup.executionGroupInfo.stages[0].state == 'RUNNING'"
+    [paused]="executionGroup.executionGroupInfo.stages[0].state == 'PAUSED'"
+    [comment]="executionGroup.executionGroupInfo.comment"
 
-    (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.stages[0])"
-    (clickOpenLogs)="clickOpenLogs.emit(executionGroup.stages[0])"
-    (clickOpenAnalysis)="clickOpenAnalysis.emit(executionGroup.stages[0])"
-    (clickOpenTensorboard)="clickOpenTensorboard.emit(executionGroup.stages[0])"
+    (clickOpenWorkspace)="clickOpenWorkspace.emit(executionGroup.executionGroupInfo.stages[0])"
+    (clickOpenLogs)="clickOpenLogs.emit(executionGroup.executionGroupInfo.stages[0])"
+    (clickOpenAnalysis)="clickOpenAnalysis.emit(executionGroup.executionGroupInfo.stages[0])"
+    (clickOpenTensorboard)="clickOpenTensorboard.emit(executionGroup.executionGroupInfo.stages[0])"
 
     (clickResume)="clickResume.emit(executionGroup)"
     (clickResumeOnlyThisStage)="clickResumeOnlyThisStage.emit(executionGroup)"
     (clickDelete)="executionGroup.enqueueIndex != null ? clickDelete.emit(executionGroup) : null"
     (clickPauseAfterThis)="clickPauseAfterThis.emit(executionGroup)"
-    (clickKillCurrentStage)="clickKillStage.emit(executionGroup.stages[0])"
-    (clickUseAsBlueprint)="clickUseAsBlueprint.emit(executionGroup.stages[0])"
+    (clickKillCurrentStage)="clickKillStage.emit(executionGroup.executionGroupInfo.stages[0])"
+    (clickUseAsBlueprint)="clickUseAsBlueprint.emit(executionGroup.executionGroupInfo.stages[0])"
   ></app-project-history-header>
 </div>
 
-<div *ngIf="executionGroup.stages.length == 0" class="history-header header" [class.active]="active">
+<div *ngIf="executionGroup.executionGroupInfo.stages.length == 0" class="history-header header" [class.active]="active">
   <app-project-history-header
     [itemNo]="entryNumber"
     [time]="executionGroup.getMostRecentStartOrFinishTime()"
-    [stageName]="executionGroup.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
+    [stageName]="executionGroup.executionGroupInfo.stageDefinition.name + (executionGroup.enqueueIndex != null ? ' ('+executionGroup.enqueueIndex+')' : '')"
     [state]="executionGroup.getMostRelevantState(projectState)"
-    [isConfigure]="executionGroup.configureOnly"
-    [showResumeOnlyThisStage]="firstEntry || executionGroup.active"
+    [isConfigure]="executionGroup.executionGroupInfo.configureOnly"
+    [showResumeOnlyThisStage]="firstEntry || executionGroup.executionGroupInfo.active"
     [showActiveControls]="false"
     [showPassiveControls]="false"
     [showDeleteEnqueued]="executionGroup.enqueueIndex != null"
-    [showKillCurrentStage]="executionGroup.active"
+    [showKillCurrentStage]="executionGroup.executionGroupInfo.active"
     [enqueued]="executionGroup.enqueueIndex != null"
     [running]="false"
     [paused]="false"
-    [comment]="executionGroup.comment"
+    [comment]="executionGroup.executionGroupInfo.comment"
 
     (clickOpenWorkspace)="clickOpenWorkspace.emit(undefined)"
     (clickOpenLogs)="clickOpenLogs.emit(undefined)"

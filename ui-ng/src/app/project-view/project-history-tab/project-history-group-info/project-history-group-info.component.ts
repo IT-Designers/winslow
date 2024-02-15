@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ProjectApiService} from '../../../api/project-api.service';
+import {ExecutionGroupInfoHelper, ProjectApiService} from '../../../api/project-api.service';
 import {ExecutionGroupInfo, StageInfo} from '../../../api/winslow-api';
 
 @Component({
@@ -10,7 +10,7 @@ import {ExecutionGroupInfo, StageInfo} from '../../../api/winslow-api';
 })
 export class ProjectHistoryGroupInfoComponent implements OnInit {
 
-  @Input() executionGroup!: ExecutionGroupInfo;
+  @Input() executionGroup!: ExecutionGroupInfoHelper;
   @Input() selectedStageIndex!: number;
 
   @Input() visibleStages = 10;
@@ -81,6 +81,6 @@ export class ProjectHistoryGroupInfoComponent implements OnInit {
   }
 
   stagesToDisplay() {
-    return this.executionGroup?.stages?.slice(this.max(0, this.executionGroup.stages.length - this.visibleStages)).reverse();
+    return this.executionGroup?.executionGroupInfo.stages?.slice(this.max(0, this.executionGroup.executionGroupInfo.stages.length - this.visibleStages)).reverse();
   }
 }

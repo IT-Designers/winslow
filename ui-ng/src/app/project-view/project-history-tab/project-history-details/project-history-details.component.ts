@@ -1,11 +1,14 @@
 import {Component, EventEmitter, HostListener, Input, OnInit, Output} from '@angular/core';
 import {
   ExecutionGroupInfo,
-  isRangeWithStepSize,
-  isStageWorkerDefinitionInfo,
   StageInfo,
   State
 } from '../../../api/winslow-api';
+import {
+  isRangeWithStepSize,
+  isStageWorkerDefinitionInfo,
+} from "../../../api/pipeline-api.service";
+import {ExecutionGroupInfoHelper} from "../../../api/project-api.service";
 
 @Component({
   selector: 'app-project-history-details',
@@ -14,7 +17,7 @@ import {
 })
 export class ProjectHistoryDetailsComponent implements OnInit {
 
-  @Input() entry!: ExecutionGroupInfo;
+  @Input() entry!: ExecutionGroupInfoHelper;
   @Input() entryNumber!: number;
   @Input() selectedStage!: StageInfo;
   @Input() projectState?: State;
