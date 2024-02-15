@@ -105,25 +105,25 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
           <mat-form-field appearance="outline" class="reduce-formfield-height wide">
-            <mat-label>LogParser Matcher</mat-label>
+            <mat-label>Regex Matcher, e.g. "([\\d]+) %"</mat-label>
             <input #newLogParserMatcherInput
                    matInput
                    name="newLogParserMatcher">
           </mat-form-field>
           <mat-form-field appearance="outline" class="reduce-formfield-height wide">
-            <mat-label>LogParser Destination</mat-label>
+            <mat-label>Destination, e.g. "blubb.csv"</mat-label>
             <input #newLogParserDestinationInput
                    matInput
                    name="newLogParserDestination">
           </mat-form-field>
           <mat-form-field appearance="outline" class="reduce-formfield-height wide">
-            <mat-label>LogParser Formatter</mat-label>
+            <mat-label>Formatter, e.g. "$TIMESTAMP;$1;$0;"</mat-label>
             <input #newLogParserFormatterInput
                    matInput
                    name="newLogParserFormatter">
           </mat-form-field>
           <mat-form-field appearance="outline" class="reduce-formfield-height wide">
-            <mat-label>LogParser Type</mat-label>
+            <mat-label>Type, e.g. "regex-matcher/csv"</mat-label>
             <input #newLogParserTypeInput
                    matInput
                    name="newLogParserType">

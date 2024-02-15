@@ -40,10 +40,15 @@
         [selectedPipeline]="selectedPipeline"
         (pipelineDeleteEmitter)="onDeletePipeline($event)"
       ></app-pipeline-details>
-      <span *ngIf="selectedPipeline === null" class="nothing-selected">No pipeline selected</span>
-      <button class="show-projects-button" *ngIf="!drawer.opened" mat-mini-fab [color]="$any('white')" (click)="drawer.toggle()">
-        <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
-      </button>
+      @if (selectedPipeline === null) {
+        <div class="nothing-selected">No pipeline selected</div>
+      }
+      @if (!drawer.opened) {
+        <button class="show-projects-button" mat-mini-fab [color]="$any('white')" (click)="drawer.toggle()">
+          <mat-icon matTooltip="Show Projects">keyboard_arrow_right</mat-icon>
+        </button>
+      }
+
 
     </mat-drawer-content>
   </mat-drawer-container>

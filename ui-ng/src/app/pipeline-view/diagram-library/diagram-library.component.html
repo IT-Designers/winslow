@@ -7,8 +7,8 @@
       data-id="library"
   >
     <mat-icon>drag_indicator</mat-icon>
-    <mat-icon title="Deselect stage" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
-      cancel
+    <mat-icon title="Deselect stage and minimize window" class="iconCancel" *ngIf="selectedNode$" (click)="this.cancelEdit()">
+      remove
     </mat-icon>
   </div>
   <div class="library-icons-container">
@@ -78,6 +78,11 @@
       <app-and-settings [selectedNodeData]="isAndGateway(selectedNodeData)" (editNode)="emitSave($event)"></app-and-settings>
     } @else if (isXOrGateway(selectedNodeData).name) {
       <app-xor-settings [selectedNodeData]="isXOrGateway(selectedNodeData)" (editNode)="emitSave($event)"></app-xor-settings>
+    } @else {
+      <div class="empty-details">
+        Click on a node to configure it
+      </div>
+
     }
 
       <!--<form class="editNodeForm" (ngSubmit)="startSave()">
