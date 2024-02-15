@@ -1,27 +1,37 @@
 import {
   AfterViewInit,
   Component,
-  ComponentFactoryResolver, ComponentRef,
-  ElementRef, EventEmitter,
-  Input, OnChanges,
+  ComponentFactoryResolver,
+  ComponentRef,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
   OnDestroy,
-  OnInit, Output, SimpleChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
 import {
-  Action,
+  Action, ActionsQueue,
   ConnectorPlacement,
   CreateEdgeAction,
   CreateNodeAction,
   DeleteItemsAction,
-  DiagramMaker,
+  DeselectAction,
+  DiagramMaker, DiagramMakerAction,
   DiagramMakerActions,
   DiagramMakerConfig,
   DiagramMakerData,
   DiagramMakerNode,
   DiagramMakerPotentialNode,
-  Dispatch, DragPanelAction, Layout, WorkflowLayoutDirection,
+  Dispatch,
+  DragPanelAction,
+  Layout,
+  ResizePanelAction,
+  WorkflowLayoutDirection,
 } from 'diagram-maker';
 
 
@@ -31,11 +41,7 @@ import {DiagramConfigHelper} from './diagram-config-helper';
 import {DiagramInitialData} from './diagram-initial-data';
 import {AddToolsComponent} from './add-tools/add-tools.component';
 import {DiagramGatewayComponent} from './diagram-gateway/diagram-gateway.component';
-import {
-  PipelineDefinitionInfo, Raw,
-  StageDefinitionInfo,
-  StageDefinitionInfoUnion,
-} from '../api/winslow-api';
+import {PipelineDefinitionInfo, StageDefinitionInfo, StageDefinitionInfoUnion,} from '../api/winslow-api';
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
 
@@ -46,8 +52,8 @@ import {HttpClient} from "@angular/common/http";
 })
 export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
-  @Input() public pipelineDefinition!: PipelineDefinitionInfo;
-  @Input() public pipelineDefinitionEdit!: PipelineDefinitionInfo;
+  @Input() public pipelineDefinition!: PipelineDefinitionInfo;    //used to store the state of the pipeline before it was changed
+  @Input() public pipelineDefinitionEdit!: PipelineDefinitionInfo;    //used to store all changes made to the pipeline
   @Output() public onSave = new EventEmitter<PipelineDefinitionInfo>();
 
   public diagramMaker!: DiagramMaker;
@@ -63,6 +69,13 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
+
+  deletedStages:  StageDefinitionInfoUnion[] = [];
+
+  returnUndoHistoryAsCorrectObject(hist: any | undefined): CreateNodeAction<any> {
+    /*if (hist implements CreateNodeAction<any>)*/
+    return hist as CreateNodeAction<any>;
+  }
 
   config: DiagramMakerConfig<StageDefinitionInfo, unknown> = {
     options: {
@@ -128,8 +141,22 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
               }
               this.editState(editForm);
             });
-            this.libraryComponent.instance.resetSelectedNode.subscribe(() => this.currentNode = undefined);
-            this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the node menu
+            this.libraryComponent.instance.resetSelectedNode.subscribe(() => {
+              this.currentNode = undefined;
+              let deselectAction: DeselectAction = {
+                type: DiagramMakerActions.WORKSPACE_DESELECT,
+              }
+              this.diagramMaker.api.dispatch(deselectAction);
+              let makeSmallAction: ResizePanelAction = {
+                type: DiagramMakerActions.PANEL_RESIZE,
+                payload: {
+                  id: this.diagramMaker.store.getState().panels.library.id,
+                  size: {width: 500, height: 60},
+                }
+              };
+              this.diagramMaker.api.dispatch(makeSmallAction);
+            });
+            this.libraryComponent.instance.diagramApiCall.subscribe((event) => {   //these are calls made by the buttons in the library panel
               switch (event.action) {
                 case 'fit':
                   this.diagramMaker.api.focusNode(Object.keys(this.diagramMaker.store.getState().nodes)[0]);
@@ -158,9 +185,57 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                   this.diagramMaker.api.zoomOut(100);
                   break;
                 case 'undo':
+                  //console.dir(this.diagramMaker.store.getState().undoHistory);
+                  const undoQueue: ActionsQueue<DiagramMakerAction<{}, {}>> | undefined = this.diagramMaker.store.getState().undoHistory?.undoQueue;
+                  if (undoQueue) {
+                    if ("action" in undoQueue[0]) {
+                      const lastAction: DiagramMakerAction<{}, {}> = undoQueue[0].action as DiagramMakerAction<{}, {}>
+                      console.dir(lastAction);
+                      if (lastAction.type === DiagramMakerActions.NODE_CREATE) {    //undo creation of stages
+                        const undoAction: CreateNodeAction<any> = undoQueue[0].action as CreateNodeAction<any>;
+                        const delIndex: number = this.pipelineDefinition.stages.findIndex((stage) => stage.id === undoAction?.payload.id);
+                        this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
+                        this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+                      } else if (lastAction.type === DiagramMakerActions.DELETE_ITEMS) {    //undo deletion of stages
+                        const undoAction: DeleteItemsAction = undoQueue[0].action as DeleteItemsAction;
+                        let i = 0;
+                        for (let stageId of undoAction.payload.nodeIds) {
+                          for (let delStage of this.deletedStages) {
+                            if (delStage.id === stageId) {
+                              this.pipelineDefinitionEdit.stages.push(delStage);
+                              this.deletedStages.shift();
+                            }
+                          }
+                          i++;
+                        }
+                      }
+                    }
+                  }
                   this.diagramMaker.api.undo();
                   break;
                 case 'redo':
+                  this.diagramMaker.store.getState().nodes;
+                  const redoQueue: ActionsQueue<DiagramMakerAction<{}, {}>> | undefined = this.diagramMaker.store.getState().undoHistory?.redoQueue;
+                  if (redoQueue) {
+                    if ("action" in redoQueue[0]) {
+                      const lastAction: DiagramMakerAction<{}, {}> = redoQueue[0].action as DiagramMakerAction<{}, {}>
+                      console.dir(lastAction);
+                      if (lastAction.type === DiagramMakerActions.NODE_CREATE) {    //redo creation of stages
+                        const redoAction: CreateNodeAction<any> = redoQueue[0].action as CreateNodeAction<any>;
+                        this.pipelineDefinitionEdit.stages.push(redoAction.payload.consumerData);
+                        this.deletedStages.unshift(redoAction.payload.consumerData);
+                        console.log('NODE_CREATE')
+                      } else if (lastAction.type === DiagramMakerActions.DELETE_ITEMS) {    //redo deletion of stages
+                        const redoAction: DeleteItemsAction = redoQueue[0].action as DeleteItemsAction;
+                        console.log('DELETE_ITEMS');
+                        for (let stageId of redoAction.payload.nodeIds) {
+                          const delIndex: number = this.pipelineDefinition.stages.findIndex((stage) => stage.id === stageId);
+                          this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
+                          this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+                        }
+                      }
+                    }
+                  }
                   this.diagramMaker.api.redo();
                   break;
                 case 'save':
@@ -307,6 +382,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
           // delete stage from edit object
           let delIndex = this.pipelineDefinitionEdit.stages.findIndex((stage) => stage.id === deleteAction.payload.nodeIds[0]);
           if (delIndex) {
+            this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
             this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
           }
           // delete stage as nextStage if it was used
@@ -324,6 +400,16 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         let dragAction: DragPanelAction = JSON.parse(JSON.stringify(action));
         dragAction.payload.viewContainerSize.height = 5000;
         dispatch(dragAction);
+      } else if (action.type === DiagramMakerActions.NODE_SELECT) {
+        let makeBigAction: ResizePanelAction = {
+          type: DiagramMakerActions.PANEL_RESIZE,
+          payload: {
+            id: this.diagramMaker.store.getState().panels.library.id,
+            size: {width: 500, height: 500},
+          }
+        };
+        this.diagramMaker.api.dispatch(makeBigAction);
+        dispatch(action);
       } else {      //Default dispatch action for all actions that get not intercepted
         dispatch(action);
       }
@@ -340,7 +426,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     this.pipelineDefinitionEdit = this.pipelineDefinition;
   }
 
-  editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
+  editState(editForm: PipelineDefinitionInfo) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {
@@ -362,7 +448,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     }
   }
 
-  createElement(stageData: Raw<StageDefinitionInfo>, createAction: CreateNodeAction<StageDefinitionInfo>) { //helper function used for the intercepted createNode Actions
+  createElement(stageData: StageDefinitionInfo, createAction: CreateNodeAction<StageDefinitionInfo>) { //helper function used for the intercepted createNode Actions
     let nodeWidth: number;
     if (createAction.payload.typeId == 'node-normal') {
       nodeWidth = 200

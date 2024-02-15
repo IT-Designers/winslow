@@ -1,3 +1,4 @@
+[![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
 # Winslow 
 
 ## Prerequisite
@@ -12,8 +13,10 @@ This Project is designed to be used for a _Linux Environment_. <br>
 * Node 18.13.0
 * npm 8.19.3
 
-## How to Start
-This is an universal step-by-step approach, the **commands and directories are dependent on each other**.
+## Starting with Docker
+See [Winslow Docker Image](node/README.md#Winslow-Docker-Image) for more information.
+## Starting from Source
+This is a universal step-by-step approach, the **commands and directories are dependent on each other**.
 1. Checkout the master branch:
     * `cd $HOME; git clone https://github.com/IT-Designers/winslow.git`
 1. Create a workdir, for example in the project root:
@@ -24,7 +27,7 @@ This is an universal step-by-step approach, the **commands and directories are d
 ## Run locally
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
-   * `(cd ui-ng && npm install && npm build && npm run start)`
+   * `(cd ui-ng && npm install && npm run build && npm run start)`
 1. Build the Backend:
    * `mvn package`
 1. Set environment variables, these are example values and can be adjusted (see [workdir](README.md#required)):
@@ -61,6 +64,8 @@ If you encounter a problem, see the [troubleshooting](README.md#troubleshooting)
 
 #### Start Backend
 Click here to start backend: `winslow-application`
+<br>
+(There is also a visual guide to configure the backend: [Visual Guide](docu/visual_guide.md#configure-backend))
 
 #### Start Frontend
 Click here to start frontend: `start fe`

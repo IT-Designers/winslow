@@ -1,18 +1,16 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {LogAnalysisChartDialogComponent} from './log-analysis-chart-dialog/log-analysis-chart-dialog.component';
-import {FilesApiService} from '../../api/files-api.service';
-import {AnalysisChart, ChartDefinition} from './chart-definition';
+import {AnalysisChart} from './chart-definition';
 import {
   LogAnalysisSettingsDialogComponent
 } from './log-analysis-settings-dialog/log-analysis-settings-dialog.component';
 import {generateColor} from './colors';
 import {CsvFilesService} from './csv-files.service';
-import {ExecutionGroupInfo, ProjectInfo, StageInfo} from '../../api/winslow-api';
-import {lastValueFrom} from "rxjs";
+import {ChartDefinition, ProjectInfo, StageInfo} from '../../api/winslow-api';
 import {PipelineApiService} from "../../api/pipeline-api.service";
 import {DialogService} from "../../dialog.service";
-import {ProjectApiService} from "../../api/project-api.service";
+import {ExecutionGroupInfoHelper, ProjectApiService} from "../../api/project-api.service";
 
 @Component({
   selector: 'app-project-analysis-tab',
@@ -25,7 +23,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
 
   isLongLoading = true;
 
-  projectHistory: ExecutionGroupInfo[] = [];
+  projectHistory: ExecutionGroupInfoHelper[] = [];
   latestStage: StageInfo | null = null;
   selectableStages: StageInfo[] = [];
   charts: AnalysisChart[] = [];
@@ -133,7 +131,7 @@ export class ProjectAnalysisTabComponent implements OnInit {
     return this.selectableStages.slice(-1)[0];
   }
 
-  private loadStagesFromHistory(projectHistory: ExecutionGroupInfo[]) {
+  private loadStagesFromHistory(projectHistory: ExecutionGroupInfoHelper[]) {
     this.projectHistory = projectHistory;
     this.selectableStages = this.getSelectableStages(projectHistory);
     this.latestStage = this.getLatestStage();
@@ -147,23 +145,23 @@ export class ProjectAnalysisTabComponent implements OnInit {
     }
   }
 
-  private getSelectableStages(projectHistory: ExecutionGroupInfo[]) {
+  private getSelectableStages(projectHistory: ExecutionGroupInfoHelper[]) {
     const stages: StageInfo[] = [];
 
     projectHistory.forEach(executionGroup => {
 
-      if (executionGroup.configureOnly) {
+      if (executionGroup.executionGroupInfo.configureOnly) {
         return;
       }
 
-      if (executionGroup.stages.length === 0) {
+      if (executionGroup.executionGroupInfo.stages.length === 0) {
         return;
       }
 
-      if (executionGroup.workspaceConfiguration.sharedWithinGroup) {
-        stages.push(executionGroup.stages[0]);
+      if (executionGroup.executionGroupInfo.workspaceConfiguration.sharedWithinGroup) {
+        stages.push(executionGroup.executionGroupInfo.stages[0]);
       } else {
-        stages.push(...executionGroup.stages);
+        stages.push(...executionGroup.executionGroupInfo.stages);
       }
     });
 

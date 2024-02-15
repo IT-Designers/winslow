@@ -3,11 +3,11 @@
     <envs>
       <env name="WINSLOW_DEV_ENV" value="true" />
       <env name="WINSLOW_DEV_ENV_IP" value="192.168.1.178" />
-      <env name="WINSLOW_DEV_REMOTE_USER" value="axel" />
       <env name="WINSLOW_NO_GPU_USAGE" value="0" />
       <env name="WINSLOW_NO_STAGE_EXECUTION" value="0" />
-      <env name="WINSLOW_ROOT_USERS" value="axel" />
       <env name="WINSLOW_WORK_DIRECTORY" value="$PROJECT_DIR$/workdir" />
+      <env name="WINSLOW_DEV_REMOTE_USER" value="example" />
+      <env name="WINSLOW_ROOT_USERS" value="example" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="de.itdesigners.winslow.Main" />
     <module name="winslow-application" />

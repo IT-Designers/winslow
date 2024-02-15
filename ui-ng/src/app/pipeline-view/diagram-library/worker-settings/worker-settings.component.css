@@ -33,7 +33,7 @@
 }
 
 :host ::ng-deep .mdc-floating-label {
-  padding-top: 0em;
+  padding-top: 0;
   padding-bottom: 0.6em;
 }
 
@@ -50,5 +50,13 @@
 
 .slide-toggle-row {
   margin: 0.5em;
+}
+
+.wide {
+  width: 100%;
+}
+
+.bold {
+  font-weight: bold;
 }
 
