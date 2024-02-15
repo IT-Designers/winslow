@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {HttpEventType} from '@angular/common/http';
-import {FilesApiService, humanReadableFileSize} from '../api/files-api.service';
+import {FileInfoHelper, FilesApiService, humanReadableFileSize} from '../api/files-api.service';
 import {LongLoadingDetector} from '../long-loading-detector';
 import {DialogService, InputDefinition} from '../dialog.service';
 import {SwalComponent, SwalPortalTargets} from '@sweetalert2/ngx-sweetalert2';
@@ -16,7 +16,7 @@ import {lastValueFrom} from "rxjs";
 })
 export class FilesComponent implements OnInit {
 
-  files: Map<string, FileInfo[]>;
+  files: Map<string, FileInfoHelper[]>;
   longLoading = new LongLoadingDetector();
   loadError?: Error;
 
@@ -44,7 +44,7 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = 'resources';
     const path = '/resources';
-    const info = new FileInfo({name, path, directory, fileSize: 0, attributes: {}});
+    const info = new FileInfoHelper({name, path, directory, fileSize: 0, attributes: {}});
     root.push(info);
     this.files = new Map();
     this.files.set('/', root);
@@ -72,11 +72,11 @@ export class FilesComponent implements OnInit {
     const directory = true;
     const name = value.split(';')[0];
     const path = `/${value.split(';')[1]}`;
-    const additional = new FileInfo({name, directory, path, fileSize: 0, attributes: {}});
+    const additional = new FileInfoHelper({name, directory, path, fileSize: 0, attributes: {}});
     this.files.get('/')?.splice(1);
     this.files.get('/')?.push(additional);
-    this.files.set(additional.path, []);
-    this.navigationTarget = additional.path;
+    this.files.set(additional.fileInfo.path, []);
+    this.navigationTarget = additional.fileInfo.path;
   }
 
   @Input()
@@ -88,14 +88,14 @@ export class FilesComponent implements OnInit {
 
   directories(path: string) {
     const files = this.files.get(path);
-    return files != null ? files.filter(f => f.directory) : null;
+    return files != null ? files.filter(f => f.fileInfo.directory) : null;
   }
 
   private removeCachedRecursively(path: string) {
     const info = this.files.get(path);
     if (info != null) {
       for (const i of info) {
-        this.removeCachedRecursively(i.path);
+        this.removeCachedRecursively(i.fileInfo.path);
       }
     }
     this.files.delete(path);
@@ -110,12 +110,12 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private insertListResourceResult(path: string, res: FileInfo[]) {
+  private insertListResourceResult(path: string, res: FileInfoHelper[]) {
     this.files.set(
       path,
       res
-        .sort((a, b) => a.name > b.name ? 1 : -1) // sort by name
-        .sort((a, b) => a.directory < b.directory ? 1 : -1) // directories first
+        .sort((a, b) => a.fileInfo.name > b.fileInfo.name ? 1 : -1) // sort by name
+        .sort((a, b) => a.fileInfo.directory < b.fileInfo.directory ? 1 : -1) // directories first
     );
   }
 
@@ -135,7 +135,7 @@ export class FilesComponent implements OnInit {
     });
   }
 
-  currentDirectory(): FileInfo[] {
+  currentDirectory(): FileInfoHelper[] {
     return this.files.get(this.latestPath) ?? [];
   }
 
@@ -181,7 +181,7 @@ export class FilesComponent implements OnInit {
           this.selectedPath.emit(this.latestPath = combined);
 
           for (const r of res) {
-            if (r.name === pathSplit[currentIndex + 1] && r.directory) {
+            if (r.fileInfo.name === pathSplit[currentIndex + 1] && r.fileInfo.directory) {
               return this.recursivelyLoadDirectoriesOfPath(pathSplit, currentIndex + 1, combined);
             }
           }
@@ -449,14 +449,14 @@ export class FilesComponent implements OnInit {
     );
   }
 
-  getCachedFileInfo(path: string): FileInfo | undefined {
+  getCachedFileInfo(path: string): FileInfoHelper | undefined {
     if (path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
     }
     const index = path.lastIndexOf('/');
     if (index > 0) {
       const files = this.files.get(path.substring(0, index));
-      return files?.find(file => file.name === path.substring(index + 1));
+      return files?.find(file => file.fileInfo.name === path.substring(index + 1));
     }
     return undefined;
   }
@@ -470,7 +470,7 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  formatGitBranch(file: FileInfo) {
+  formatGitBranch(file: FileInfoHelper) {
     if (file.isGitRepository()) {
       return ` (${file.getGitBranch()})`;
     } else {

@@ -4,9 +4,9 @@
       <app-project-history-header class="history-header"
                                   [itemNo]="entryNumber"
                                   [time]="selectedStage.startTime"
-                                  [stageName]="entry.stageDefinition.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
+                                  [stageName]="entry.executionGroupInfo.stageDefinition.name + (entry.enqueueIndex != null ? ' ('+entry.enqueueIndex+')' : '')"
                                   [state]="entry.getMostRelevantState(projectState)"
-                                  [isConfigure]="entry.configureOnly"
+                                  [isConfigure]="entry.executionGroupInfo.configureOnly"
                                   [showResumeOnlyThisStage]="false"
                                   [enqueued]="false"
                                   [running]="selectedStage.state == 'RUNNING'"
@@ -42,7 +42,7 @@
       </mat-button-toggle-group>
     </div>
 
-    <div *ngIf="isStageWorkerDefinitionInfo(entry.stageDefinition)" [style.overflow]="'auto'"
+    <div *ngIf="isStageWorkerDefinitionInfo(entry.executionGroupInfo.stageDefinition)" [style.overflow]="'auto'"
          [ngStyle]="{'height': historyDetailsHeight + 'px'}">
 
       <ng-template #detailItem let-key="key" let-value="value">
@@ -62,7 +62,7 @@
           <ng-template
             *ngTemplateOutlet="
               detailItem;
-              context: { key: 'Name', value: entry.stageDefinition.name }
+              context: { key: 'Name', value: entry.executionGroupInfo.stageDefinition.name }
             "
           ></ng-template>
           <ng-template
@@ -70,7 +70,7 @@
               detailItem;
               context: {
                 key: 'Image Name',
-                value: entry.stageDefinition.image.name
+                value: entry.executionGroupInfo.stageDefinition.image.name
               }
             "
           ></ng-template>
@@ -79,7 +79,7 @@
               detailItem;
               context: {
                 key: 'Image Arguments',
-                value: entry.stageDefinition.image.args | json
+                value: entry.executionGroupInfo.stageDefinition.image.args | json
               }
             "
           ></ng-template>
@@ -88,7 +88,7 @@
               detailItem;
               context: {
                 key: 'Required CPUs',
-                value: entry.stageDefinition.requiredResources.cpus
+                value: entry.executionGroupInfo.stageDefinition.requiredResources.cpus
               }
             "
           ></ng-template>
@@ -97,7 +97,7 @@
               detailItem;
               context: {
                 key: 'Required RAM (MiB)',
-                value: entry.stageDefinition.requiredResources.megabytesOfRam
+                value: entry.executionGroupInfo.stageDefinition.requiredResources.megabytesOfRam
               }
             "
           ></ng-template>
@@ -106,7 +106,7 @@
               detailItem;
               context: {
                 key: 'Required GPUs',
-                value: entry.stageDefinition.requiredResources.gpu
+                value: entry.executionGroupInfo.stageDefinition.requiredResources.gpu
               }
             "
           ></ng-template>
@@ -115,7 +115,7 @@
               detailItem;
               context: {
                 key: 'Environment',
-                value: entry.stageDefinition.environment | json
+                value: entry.executionGroupInfo.stageDefinition.environment | json
               }
             "
           ></ng-template>
@@ -124,7 +124,7 @@
               detailItem;
               context: {
                 key: 'Workspace Mode',
-                value: entry.workspaceConfiguration.mode
+                value: entry.executionGroupInfo.workspaceConfiguration.mode
               }
             "
           ></ng-template>
@@ -133,7 +133,7 @@
               detailItem;
               context: {
                 key: 'Workspace Shared Within Group',
-                value: entry.workspaceConfiguration.sharedWithinGroup
+                value: entry.executionGroupInfo.workspaceConfiguration.sharedWithinGroup
               }
             "
           ></ng-template>
@@ -142,7 +142,7 @@
               detailItem;
               context: {
                 key: 'Workspace Nested Within Group',
-                value: entry.workspaceConfiguration.nestedWithinGroup
+                value: entry.executionGroupInfo.workspaceConfiguration.nestedWithinGroup
               }
             "
           ></ng-template>
@@ -151,11 +151,11 @@
               detailItem;
               context: {
                 key: 'Workspace Supplement',
-                value: entry.workspaceConfiguration.value
+                value: entry.executionGroupInfo.workspaceConfiguration.value
               }
             "
           ></ng-template>
-          @for (entry of entry.rangedValues | keyvalue;track trackKey) {
+          @for (entry of entry.executionGroupInfo.rangedValues | keyvalue;track trackKey) {
             <ng-container *ngIf="isRangeWithStepSize(entry.value)">
               <ng-template
                 *ngTemplateOutlet="
@@ -177,8 +177,8 @@
           }
 
           <h4>Environment Variables</h4>
-          <i *ngIf="isEmpty(entry.stageDefinition.environment)">none</i>
-          @for (e of entry.stageDefinition.environment | keyvalue;track trackKey) {
+          <i *ngIf="isEmpty(entry.executionGroupInfo.stageDefinition.environment)">none</i>
+          @for (e of entry.executionGroupInfo.stageDefinition.environment | keyvalue;track trackKey) {
             <ng-template
               *ngTemplateOutlet="
                 detailItem;

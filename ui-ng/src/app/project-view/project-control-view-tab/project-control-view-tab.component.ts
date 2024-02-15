@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import {
   PipelineDefinitionInfo,
-  ProjectInfo, Raw,
+  ProjectInfo,
   StageDefinitionInfo,
 } from "../../api/winslow-api";
 import {
@@ -160,7 +160,7 @@ export class ProjectControlViewTabComponent implements OnInit, AfterViewInit, On
   ) {
   }
 
-  editState(editForm: Raw<PipelineDefinitionInfo>) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
+  editState(editForm: PipelineDefinitionInfo) { //used when saving the edits of a node, dispatching them ito the stor of diagrammaker with the custom Update_node action
     const currentState = this.diagramMaker.store.getState();
     let editNode = currentState.nodes[editForm.id];
     if (editNode) {

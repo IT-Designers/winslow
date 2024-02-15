@@ -1,7 +1,8 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ChartAxisType, ChartGraph, AnalysisChart, ChartDefinition} from "../chart-definition";
+import {ChartGraph, AnalysisChart} from "../chart-definition";
 import {Subscription} from "rxjs";
 import {EChartsOption, SeriesOption} from 'echarts'
+import {ChartDefinition, ChartAxisType} from "../../../api/winslow-api";
 
 @Component({
   selector: 'app-log-analysis-chart',
@@ -91,11 +92,11 @@ export class LogAnalysisChartComponent implements OnInit, OnDestroy {
   private toEchartsAxisType(original: ChartAxisType) {
     //return original.toLowerCase(); // TypeScript does not like this
     switch (original) {
-      case ChartAxisType.VALUE:
+      case 'VALUE':
         return "value"
-      case ChartAxisType.LOG:
+      case 'LOG':
         return "log"
-      case ChartAxisType.TIME:
+      case 'TIME':
         return "time"
     }
   }

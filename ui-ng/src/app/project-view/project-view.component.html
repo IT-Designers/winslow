@@ -96,12 +96,12 @@
       <div *ngIf="history.length > 0">
         <app-project-history-details
           [entry]="selectedHistoryEntry ? selectedHistoryEntry : history[0]"
-          [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].id, history.length)"
-          [selectedStage]="selectedHistoryEntryStage ??  history[0].stages[history[0].stages.length-1]"
+          [entryNumber]="selectedHistoryEntryNumber ?? tryParseStageNumber(history[0].executionGroupInfo.id, history.length)"
+          [selectedStage]="selectedHistoryEntryStage ??  history[0].executionGroupInfo.stages[history[0].executionGroupInfo.stages.length-1]"
           [projectState]="stateValue"
 
           (clickKillStage)="$event == null ? killAllStages() : killStage($event.id)"
-          (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry, $event)"
+          (clickUseAsBlueprint)="useAsBlueprint(selectedHistoryEntry?.executionGroupInfo, $event)"
           (clickOpenWorkspace)="openWorkspace($event)"
           (clickOpenLogs)="openLogs($event)"
           (clickOpenAnalysis)="openAnalysis($event)"

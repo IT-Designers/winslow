@@ -104,7 +104,7 @@ export class PipelineApiService {
   }
 }
 
-export function loadPipelineDefinition(origin: Raw<PipelineDefinitionInfo>): PipelineDefinitionInfo {
+export function loadPipelineDefinition(origin: PipelineDefinitionInfo): PipelineDefinitionInfo {
   return new PipelineDefinitionInfo({
     ...origin,
     stages: origin.stages.map(stage => loadStageDefinition(stage)),

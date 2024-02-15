@@ -3,7 +3,7 @@ import {DiagramMakerNode} from "diagram-maker";
 import {
   ImageInfo,
   PipelineDefinitionInfo, ProjectInfo,
-  Raw, ResourceInfo,
+  ResourceInfo,
   StageDefinitionInfo,
   StageDefinitionInfoUnion,
   StageWorkerDefinitionInfo, WorkspaceConfiguration
@@ -143,7 +143,7 @@ export class ControlViewLibraryComponent implements OnInit {
   }
   saveEdit(savedForm : Object){   //receives the chaneged data from the edit-forms and saves it in the board and in the node
     if (1 in savedForm) {
-      this.formObj = savedForm[1] as Raw<StageDefinitionInfoUnion>;
+      this.formObj = savedForm[1] as StageDefinitionInfoUnion;
     }
     this.editNode.emit(this.formObj);
   }

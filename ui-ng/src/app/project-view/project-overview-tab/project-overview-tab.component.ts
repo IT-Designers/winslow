@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {ProjectApiService} from '../../api/project-api.service';
+import {ExecutionGroupInfoHelper, ProjectApiService} from '../../api/project-api.service';
 import {DialogService} from '../../dialog.service';
 import {MatDialog} from '@angular/material/dialog';
 import {
@@ -40,7 +40,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   lastSuccessfulStatsUpdate = 0;
   seriesInitialized = false;
 
-  mostRecent?: ExecutionGroupInfo;
+  mostRecent?: ExecutionGroupInfoHelper;
   projectValue!: ProjectInfo;
   memory: any[] = [];
   memoryMax = 1;
@@ -49,7 +49,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   cpuLimit = 0;
   subscription?: Subscription;
 
-  enqueued: ExecutionGroupInfo[] = [];
+  enqueued: ExecutionGroupInfoHelper[] = [];
 
   mergeOptionCpu: EChartsOption = {};
   chartOptionCpu: EChartsOption = {
@@ -208,7 +208,7 @@ export class ProjectOverviewTabComponent implements OnDestroy {
   }
 
   @Input()
-  set history(history: ExecutionGroupInfo[]) {
+  set history(history: ExecutionGroupInfoHelper[]) {
     this.mostRecent = undefined;
     this.enqueued = [];
     if (history && history.length > 0) {
