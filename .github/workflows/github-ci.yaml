@@ -131,7 +131,7 @@ jobs:
           fi 
           echo $TAG
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
-          
+
   publish-winslow-image:
     runs-on: ubuntu-latest
     if: needs.publish-validator.outputs.TAG != ''
@@ -162,17 +162,41 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_HTML
 
+      - name: Build winslow:${{ env.TAG }}
+        run: |
+          cd node
+          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+
+      - name: Start winslow:${{ env.TAG }}
+        run: |
+          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW:$TAG
+
+      - name: Smoke test winslow:${{ env.TAG }}
+        run: |
+          success=false
+          for i in {1..7}; do
+            echo "Attempt $i: Checking if application is up..."
+            if curl -s -X GET "http://localhost:8080/api/v1/users" -H "accept: */*" | grep -q example; then
+              echo "Application is up and running, and User 'example' was found."
+              success=true
+              break
+              else
+                echo "Application is not ready yet or User 'example' was not found. Retrying in 5 seconds..."
+                sleep 5
+            fi
+            done
+          
+            if [[ "$success" == false ]]; then
+              echo "Failed to connect to application or 'example' was not found after $i tries."
+              exit 1
+            fi
+
       - name: Dockerhub login
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
-
-      - name: Build winslow:${{ env.TAG }}
-        run: |
-          cd node
-          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
       - name: Push winslow:${{ env.TAG }}
         run: |
