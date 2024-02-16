@@ -17,3 +17,9 @@ Try to access the Winslow UI at [http://localhost:8080](http://localhost:8080) w
 Credentials are example/example.
 
 Further documentation can be found on [GitHub](https://github.com/IT-Designers/winslow/tree/2024.1).
+
+## Tags
+There are following tags available:
+- `20xx.x` - The release version of Winslow, which matches the corresponding git **tag** `20xx.x`
+- `20xx.x-dev` - The current state of the corresponding git **branch** `20xx.x`
+- `dev` - The current state of git master branch
