@@ -121,6 +121,10 @@ public class Env {
         return isTrueOr1(System.getenv(DEV_ENV));
     }
 
+    public static boolean isProdEnv() {
+        return !isDevEnv();
+    }
+
     public static Optional<String> getDevUser() {
         return isDevEnv() ? Optional.ofNullable(System.getenv(DEV_REMOTE_USER)) : Optional.empty();
     }

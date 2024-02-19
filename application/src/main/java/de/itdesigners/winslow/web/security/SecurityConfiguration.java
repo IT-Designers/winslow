@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.security;
 
 import de.itdesigners.winslow.Env;
 import de.itdesigners.winslow.Winslow;
@@ -18,11 +18,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import java.io.IOException;
@@ -64,6 +66,7 @@ public class SecurityConfiguration {
 
     private void configureAfterFilter(HttpSecurity http) {
         http.addFilterAfter(this::invalidateSessionWhenUserIsInactive, AuthorizationFilter.class);
+        http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
     }
 
 
@@ -76,7 +79,7 @@ public class SecurityConfiguration {
     }
 
     private void configureAuthorization(HttpSecurity http) throws Exception {
-        if (!Env.isDevEnv() || Env.isAuthMethodSet()) {
+        if (Env.isProdEnv() || Env.isAuthMethodSet()) {
             LOG.info("Authorization: Requiring login to access Winslow");
             http
                     .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
@@ -92,12 +95,18 @@ public class SecurityConfiguration {
     }
 
     private void configureCsrfToken(HttpSecurity http) throws Exception {
-        http
-                .csrf((csrf) -> {
-                    csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-                    csrf.ignoringRequestMatchers(Env.getWebsocketPath() + "**");
-                    csrf.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
-                });
+
+        if (Env.isProdEnv()) {
+            http
+                    .csrf((csrf) -> {
+                        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                        csrf.ignoringRequestMatchers(Env.getWebsocketPath() + "**");
+                        csrf.csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
+                    });
+        } else {
+            http.csrf(AbstractHttpConfigurer::disable);
+        }
+
     }
 
 

@@ -1,4 +1,4 @@
-package de.itdesigners.winslow.web;
+package de.itdesigners.winslow.web.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
