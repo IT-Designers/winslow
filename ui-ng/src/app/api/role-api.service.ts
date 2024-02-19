@@ -17,7 +17,7 @@ export class RoleApiService {
 
   getRoles(): Promise<string[]> {
     return lastValueFrom(
-      this.client.get<string[]>(RoleApiService.getUrl(''))
+      this.client.get<string[]>(RoleApiService.getUrl())
     );
   }
 }

@@ -19,19 +19,19 @@ export class UserApiService {
 
   getUsers(): Promise<UserInfo[]> {
     return lastValueFrom(
-      this.client.get<UserInfo[]>(UserApiService.getUrl(''))
+      this.client.get<UserInfo[]>(UserApiService.getUrl())
     );
   }
 
   createUser(newUser: UserInfo): Promise<UserInfo> {
     return lastValueFrom(
-      this.client.post<UserInfo>(UserApiService.getUrl(''), newUser)
+      this.client.post<UserInfo>(UserApiService.getUrl(), newUser)
     );
   }
 
   updateUser(updatedUser: UserInfo): Promise<UserInfo> {
     return lastValueFrom(
-      this.client.put<UserInfo>(UserApiService.getUrl(''), updatedUser)
+      this.client.put<UserInfo>(UserApiService.getUrl(), updatedUser)
     );
   }
 

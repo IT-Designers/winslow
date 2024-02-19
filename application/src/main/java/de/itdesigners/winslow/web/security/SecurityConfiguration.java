@@ -66,7 +66,9 @@ public class SecurityConfiguration {
 
     private void configureAfterFilter(HttpSecurity http) {
         http.addFilterAfter(this::invalidateSessionWhenUserIsInactive, AuthorizationFilter.class);
-        http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+        if (Env.isProdEnv() || Env.isAuthMethodSet()) {
+            http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+        }
     }
 
 
