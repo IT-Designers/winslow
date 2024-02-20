@@ -46,7 +46,6 @@ public class Env {
 
     public static final String BACKEND        = SELF_PREFIX + "_BACKEND";
     public static final String BACKEND_DOCKER = "docker";
-    public static final String BACKEND_NOMAD  = "nomad";
 
     private Env() {
     }
@@ -157,10 +156,6 @@ public class Env {
     @Nullable
     public static String getBackend() {
         return System.getenv(BACKEND);
-    }
-
-    public static boolean isBackendNomad() {
-        return Objects.equals(BACKEND_NOMAD, getBackend());
     }
 
     public static boolean isBackendDocker() {
