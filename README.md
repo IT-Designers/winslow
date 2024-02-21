@@ -60,12 +60,12 @@ If you encounter a problem, see the [troubleshooting](README.md#troubleshooting)
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 
-![node_npm_version.png](docu/img/node_npm_version.png)
+![node_npm_version.png](docs/img/node_npm_version.png)
 
 #### Start Backend
 Click here to start backend: `winslow-application`
 <br>
-(There is also a visual guide to configure the backend: [Visual Guide](docu/visual_guide.md#configure-backend))
+(There is also a visual guide to configure the backend: [Visual Guide](docs/visual_guide.md#configure-backend))
 
 #### Start Frontend
 Click here to start frontend: `start fe`
