@@ -1,9 +1,8 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {GroupInfo} from '../../api/group-api.service';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {GroupApiService} from '../../api/group-api.service';
-import {Link, Role} from '../../api/winslow-api';
+import {GroupInfo, Role} from '../../api/winslow-api';
 
 export interface AddGroupData {
   alreadyAssigned: GroupInfo[];
@@ -29,7 +28,8 @@ export class ProjectAddGroupDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<ProjectAddGroupDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AddGroupData,
     private groupApi: GroupApiService
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     this.groupApi.getGroups().then((groups) => {

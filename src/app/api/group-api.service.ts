@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from "rxjs";
 
-import {Link} from "./winslow-api";
+import {GroupInfo, Link} from "./winslow-api";
 
 
 @Injectable({
@@ -20,7 +20,7 @@ export class GroupApiService {
 
   getGroups(): Promise<GroupInfo[]> {
     return lastValueFrom(
-      this.client.get<GroupInfo[]>(GroupApiService.getUrl(''))
+      this.client.get<GroupInfo[]>(GroupApiService.getUrl())
     );
   }
 
@@ -32,7 +32,7 @@ export class GroupApiService {
 
   createGroup(group: GroupInfo): Promise<GroupInfo> {
     return lastValueFrom(
-      this.client.post<GroupInfo>(GroupApiService.getUrl(''), group)
+      this.client.post<GroupInfo>(GroupApiService.getUrl(), group)
     );
   }
 
@@ -65,9 +65,4 @@ export class GroupApiService {
       this.client.get(GroupApiService.getUrl(groupName + '/available'))
     );
   }
-}
-
-export interface GroupInfo {
-  name: string;
-  members: Link[];
 }

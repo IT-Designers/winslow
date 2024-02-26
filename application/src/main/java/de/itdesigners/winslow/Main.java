@@ -16,7 +16,6 @@ import de.itdesigners.winslow.node.NodeInfoUpdater;
 import de.itdesigners.winslow.node.NodeRepository;
 import de.itdesigners.winslow.node.PlatformInfo;
 import de.itdesigners.winslow.node.unix.UnixNode;
-import de.itdesigners.winslow.nomad.NomadBackendBuilder;
 import de.itdesigners.winslow.project.AuthTokenRepository;
 import de.itdesigners.winslow.project.LogRepository;
 import de.itdesigners.winslow.project.ProjectRepository;
@@ -170,9 +169,6 @@ public class Main {
         if (Env.isBackendDocker()) {
             LOG.info("Using docker backend");
             return new DockerBackendBuilder(nodeName, platformInfo);
-        } else if (Env.isBackendNomad()) {
-            LOG.info("Using nomad backend (default)");
-            return new NomadBackendBuilder(nodeName, platformInfo);
         } else {
             LOG.severe("Backend not recognized");
             throw new RuntimeException("Invalid backend configured");

@@ -3,8 +3,8 @@ import {RoleApiService} from '../../api/role-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {DialogService} from '../../dialog.service';
 import {GroupAddMemberDialogComponent} from '../group-add-member-dialog/group-add-member-dialog.component';
-import {GroupApiService, GroupInfo} from '../../api/group-api.service';
-import {Link} from "../../api/winslow-api";
+import {GroupApiService } from '../../api/group-api.service';
+import {GroupInfo, Link} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-group-member-list',

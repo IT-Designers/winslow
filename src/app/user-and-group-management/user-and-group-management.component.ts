@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {GroupApiService, GroupInfo} from '../api/group-api.service';
+import {GroupApiService} from '../api/group-api.service';
 import {RoleApiService} from '../api/role-api.service';
 import {UserApiService} from '../api/user-api.service';
 import {MatDialog} from '@angular/material/dialog';
