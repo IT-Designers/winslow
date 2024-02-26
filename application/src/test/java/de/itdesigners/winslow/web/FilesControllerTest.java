@@ -26,8 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.annotation.Nonnull;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -41,6 +41,7 @@ import java.util.zip.ZipOutputStream;
 
 import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertThrows;
 
 public class FilesControllerTest {
 
@@ -1293,7 +1294,6 @@ public class FilesControllerTest {
                 return null;
             }
 
-            @Override
             @Deprecated
             public String getRealPath(String s) {
                 return null;
@@ -1353,6 +1353,21 @@ public class FilesControllerTest {
 
             @Override
             public DispatcherType getDispatcherType() {
+                return null;
+            }
+
+            @Override
+            public String getRequestId() {
+                return null;
+            }
+
+            @Override
+            public String getProtocolRequestId() {
+                return null;
+            }
+
+            @Override
+            public ServletConnection getServletConnection() {
                 return null;
             }
 
@@ -1466,7 +1481,6 @@ public class FilesControllerTest {
                 return null;
             }
 
-            @Override
             public boolean isRequestedSessionIdValid() {
                 return false;
             }
@@ -1481,7 +1495,6 @@ public class FilesControllerTest {
                 return false;
             }
 
-            @Override
             @Deprecated
             public boolean isRequestedSessionIdFromUrl() {
                 return false;
