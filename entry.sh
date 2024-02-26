@@ -17,30 +17,6 @@ if [ "$WINSLOW_CA_CERT_DIR" != "" ]; then
   IFS=$IFS_OLD
 fi
 
-
-export NOMAD_PORT=4646
-export NOMAD_PID_FILE=/run/nomad.pid
-
-echo "  :::: Starting nomad"
-rm -rf /tmp/nomad-data-dir || true
-#start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --exec /usr/bin/nomad -- agent -config /etc/nomad/nomad.hcl
-start-stop-daemon --start --name nomad --quiet --pidfile $NOMAD_PID_FILE --background --startas /bin/bash -- -c "/usr/bin/nomad agent -config /etc/nomad/nomad.hcl &> /var/log/nomad.log"
-
-for i in {1..15}; do
-  sleep 1
-  echo "       Probing nomad... ($i)"
-  if $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN > /dev/null); then
-    break;
-  fi
-done
-
-if $(lsof -Pi :$NOMAD_PORT -sTCP:LISTEN > /dev/null); then
-  echo "       Probing nomad... succeeded"
-else
-  echo "       Probing nomad... failed"
-  exit 2
-fi
-
 echo "  :::: Preparing Winslow startup env"
 mkdir -p "$WINSLOW_WORK_DIRECTORY"
 
@@ -101,6 +77,3 @@ echo ""
 JAVA_CMD="java $AGENTLIB_DEBUGGER -jar /usr/bin/winslow.jar"
 echo "$JAVA_CMD"
 $JAVA_CMD
-
-start-stop-daemon --stop --name nomad --quiet --pidfile $NOMAD_PID_FILE
-
