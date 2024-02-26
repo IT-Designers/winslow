@@ -1,5 +1,6 @@
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
 # Winslow 
+TODO: Explain what is winslow!
 
 ## Prerequisite
 This Project is designed to be used for a _Linux Environment_. <br>
