@@ -3,7 +3,7 @@ package de.itdesigners.winslow.docker;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.jaxrs.JerseyDockerHttpClient;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import de.itdesigners.winslow.Backend;
 import de.itdesigners.winslow.BackendBuilder;
 import de.itdesigners.winslow.node.PlatformInfo;
@@ -27,7 +27,7 @@ public class DockerBackendBuilder implements BackendBuilder {
 
         this.dockerClient = DockerClientImpl.getInstance(
                 dockerClientConfig,
-                new JerseyDockerHttpClient.Builder()
+                new ApacheDockerHttpClient.Builder()
                         .dockerHost(dockerClientConfig.getDockerHost())
                         .sslConfig(dockerClientConfig.getSSLConfig())
                         .build()

@@ -15,7 +15,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriUtils;
 
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -102,14 +102,14 @@ public class ProxyRouting {
         var mappedProxy = proxy.uri(uri).body(body);
 
         try {
-            return switch (method) {
-                case GET -> mappedProxy.get();
-                case HEAD -> mappedProxy.head();
-                case POST -> mappedProxy.post();
-                case PUT -> mappedProxy.put();
-                case PATCH -> mappedProxy.patch();
-                case DELETE -> mappedProxy.delete();
-                case OPTIONS -> mappedProxy.options();
+            return switch (method.name()) {
+                case "GET" -> mappedProxy.get();
+                case "HEAD" -> mappedProxy.head();
+                case "POST" -> mappedProxy.post();
+                case "PUT" -> mappedProxy.put();
+                case "PATCH" -> mappedProxy.patch();
+                case "DELETE" -> mappedProxy.delete();
+                case "OPTIONS" -> mappedProxy.options();
                 default -> new ResponseEntity<>(HttpStatus.OK);
             };
         } catch (ResourceAccessException rae) {
