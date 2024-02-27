@@ -87,12 +87,6 @@ app-groups-add-member-dialog {
 }
 
 .remove-member-button {
-  border: none;
-  background-color:  #F44336;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  box-shadow: 0 1px 3px rgb(128, 128, 128); /* horizontal shadow | vertical shadow | shadow blur | shadow color*/
   float: right;
 }
 
@@ -109,23 +103,6 @@ app-groups-add-member-dialog {
   cursor: default;
 }
 
-.item-icon {
-  font-size: 30px;
-  color: white;
-  margin-left: 5px;
-  margin-top: 2px;
-}
-
-.text-input {
-  width: 96%;
-  padding: 2px 2px 2px 5px;
-  border: 1px solid lightgrey;
-  border-bottom: 1px solid grey;
-  border-radius: 3px;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
 
 .mat-input-container {
   width: 97%;
