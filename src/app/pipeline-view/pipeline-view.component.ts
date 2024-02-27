@@ -45,6 +45,12 @@ import {PipelineDefinitionInfo, Raw, StageDefinitionInfo, StageDefinitionInfoUni
 import {DefaultApiServiceService} from "../api/default-api-service.service";
 import {HttpClient} from "@angular/common/http";
 
+interface DeletedStage {
+  stageIndex: number;
+  deletedStage: StageDefinitionInfoUnion;
+  idsOfPreviousStages?: string[];
+}
+
 @Component({
   selector: 'app-pipeline-view',
   templateUrl: './pipeline-view.component.html',
@@ -70,7 +76,7 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
   @ViewChild('diagramEditorContainer')
   diagramEditorContainer!: ElementRef;
 
-  deletedStages:  StageDefinitionInfoUnion[] = [];
+  deletedStages:  DeletedStage[] = [];
 
   returnUndoHistoryAsCorrectObject(hist: any | undefined): CreateNodeAction<any> {
     /*if (hist implements CreateNodeAction<any>)*/
@@ -193,20 +199,11 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                       console.dir(lastAction);
                       if (lastAction.type === DiagramMakerActions.NODE_CREATE) {    //undo creation of stages
                         const undoAction: CreateNodeAction<any> = undoQueue[0].action as CreateNodeAction<any>;
-                        const delIndex: number = this.pipelineDefinition.stages.findIndex((stage) => stage.id === undoAction?.payload.id);
-                        this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
-                        this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+                        this.removeStageFromEditObject(undoAction?.payload.id);
                       } else if (lastAction.type === DiagramMakerActions.DELETE_ITEMS) {    //undo deletion of stages
                         const undoAction: DeleteItemsAction = undoQueue[0].action as DeleteItemsAction;
-                        let i = 0;
                         for (let stageId of undoAction.payload.nodeIds) {
-                          for (let delStage of this.deletedStages) {
-                            if (delStage.id === stageId) {
-                              this.pipelineDefinitionEdit.stages.push(delStage);
-                              this.deletedStages.shift();
-                            }
-                          }
-                          i++;
+                          this.reAddStageToEditObject(stageId);
                         }
                       }
                     }
@@ -219,19 +216,13 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
                   if (redoQueue) {
                     if ("action" in redoQueue[0]) {
                       const lastAction: DiagramMakerAction<{}, {}> = redoQueue[0].action as DiagramMakerAction<{}, {}>
-                      console.dir(lastAction);
                       if (lastAction.type === DiagramMakerActions.NODE_CREATE) {    //redo creation of stages
                         const redoAction: CreateNodeAction<any> = redoQueue[0].action as CreateNodeAction<any>;
-                        this.pipelineDefinitionEdit.stages.push(redoAction.payload.consumerData);
-                        this.deletedStages.unshift(redoAction.payload.consumerData);
-                        console.log('NODE_CREATE')
+                        this.reAddStageToEditObject(redoAction.payload.id);
                       } else if (lastAction.type === DiagramMakerActions.DELETE_ITEMS) {    //redo deletion of stages
                         const redoAction: DeleteItemsAction = redoQueue[0].action as DeleteItemsAction;
-                        console.log('DELETE_ITEMS');
                         for (let stageId of redoAction.payload.nodeIds) {
-                          const delIndex: number = this.pipelineDefinition.stages.findIndex((stage) => stage.id === stageId);
-                          this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
-                          this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+                          this.removeStageFromEditObject(stageId);
                         }
                       }
                     }
@@ -377,19 +368,20 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
         const nodeMap = new Map(Object.entries(this.diagramMaker.store.getState().nodes));
         const keyIter = nodeMap.keys()
         if (deleteAction.payload.nodeIds.includes(keyIter.next().value)) {
-        } else {
+        }
+        else {
           this.saveStatus = false;
           // delete stage from edit object
-          let delIndex = this.pipelineDefinitionEdit.stages.findIndex((stage) => stage.id === deleteAction.payload.nodeIds[0]);
-          if (delIndex) {
-            this.deletedStages.unshift(this.pipelineDefinitionEdit.stages[delIndex]);
-            this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
-          }
+          this.removeStageFromEditObject(deleteAction.payload.nodeIds[0]);
           // delete stage as nextStage if it was used
           for (let stage of this.pipelineDefinitionEdit.stages) {
             if (stage.nextStages.includes(deleteAction.payload.nodeIds[0])) {
               let delIndexNext = stage.nextStages.findIndex(s => s === deleteAction.payload.nodeIds[0]);
-              if (delIndexNext != undefined) {
+              if (delIndexNext != -1) {
+                if (this.deletedStages[0].idsOfPreviousStages) {
+                  this.deletedStages[0].idsOfPreviousStages.push(stage.id);
+                }
+
                 stage.nextStages.splice(delIndexNext, 1);
               }
             }
@@ -486,6 +478,33 @@ export class PipelineViewComponent implements OnInit, AfterViewInit, OnChanges, 
     }
     this.diagramMaker.api.dispatch(deleteAction)
     return deleteAction;
+  }
+
+  removeStageFromEditObject(stageId: string) {
+    const delIndex: number = this.pipelineDefinition.stages.findIndex((stage) => stage.id === stageId);
+    const delObject: DeletedStage = {
+      stageIndex: delIndex,
+      deletedStage: this.pipelineDefinitionEdit.stages[delIndex],
+      idsOfPreviousStages: [],
+    }
+    this.deletedStages.unshift(delObject);
+    this.pipelineDefinitionEdit.stages.splice(delIndex, 1);
+  }
+
+  reAddStageToEditObject(stageId: string) {
+    for (let delStage of this.deletedStages) {
+      if (delStage.deletedStage.id === stageId) {
+        this.pipelineDefinitionEdit.stages.splice(delStage.stageIndex, 0, delStage.deletedStage);
+        this.deletedStages.shift();
+      }
+      if (delStage.idsOfPreviousStages) {
+        for (let prevStage of delStage.idsOfPreviousStages) {
+          let editIndex: number = this.pipelineDefinitionEdit.stages.findIndex((stage) => stage.id === prevStage);
+          this.pipelineDefinitionEdit.stages[editIndex].nextStages.push(delStage.deletedStage.id);
+        }
+      }
+
+    }
   }
 
   /*deepDeleteElement(node: StageDefinitionInfo) {
