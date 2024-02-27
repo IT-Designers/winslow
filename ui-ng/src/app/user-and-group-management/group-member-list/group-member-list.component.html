@@ -29,12 +29,14 @@
             </mat-select>
           </mat-form-field>
           <div class="btn-container">
-            <button class="remove-member-button"
+            <button mat-raised-button
+                    class="remove-member-button"
+                    color="warn"
                     (click)="onRemoveItemClick(user)"
                     [matTooltipShowDelay]="500"
                     [matTooltip]="getTooltipRemove(user)"
                     [disabled]="user == disabledUser || !amIOwner()">
-              <mat-icon>person_remove</mat-icon>
+              Remove
             </button>
           </div>
         </div>
