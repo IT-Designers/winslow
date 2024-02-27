@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {Raw} from "./winslow-api";
 
 @Injectable({
   providedIn: 'root'
@@ -99,7 +98,7 @@ export class LocalStorageService {
 }
 
 export class GlobalChartSettings {
-  constructor(data: Raw<GlobalChartSettings>) {
+  constructor(data: GlobalChartSettings) {
     this.enableEntryLimit = data.enableEntryLimit;
     this.entryLimit = data.entryLimit;
     this.enableRefreshing = data.enableRefreshing;
@@ -113,7 +112,7 @@ export class GlobalChartSettings {
 }
 
 export class SelectedTags {
-  constructor(data: Raw<SelectedTags>) {
+  constructor(data: SelectedTags) {
     this.includedTags = data.includedTags;
     this.excludedTags = data.excludedTags;
     this.includedPipelines = data.includedPipelines;

@@ -2,10 +2,14 @@ import {DiagramMakerEdge, DiagramMakerNode, EditorMode, PositionAnchor} from "di
 import {
   PipelineDefinitionInfo,
   StageDefinitionInfo,
+} from "../../api/winslow-api";
+
+import {
   isStageAndGatewayDefinitionInfo,
   isStageWorkerDefinitionInfo,
   isStageXorGatewayDefinitionInfo
-} from "../../api/winslow-api";
+} from "../../api/pipeline-api.service";
+
 
 export class ControlDiagramInitialData {
 

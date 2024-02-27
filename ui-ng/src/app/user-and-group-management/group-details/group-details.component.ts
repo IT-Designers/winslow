@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {GroupApiService, GroupInfo} from '../../api/group-api.service';
+import {GroupApiService} from '../../api/group-api.service';
 import {DialogService} from '../../dialog.service';
-import {Link} from "../../api/winslow-api";
+import {GroupInfo, Link} from "../../api/winslow-api";
 
 @Component({
   selector: 'app-group-details',

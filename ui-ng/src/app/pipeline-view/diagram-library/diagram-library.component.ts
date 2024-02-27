@@ -2,7 +2,7 @@ import {Component, Input, OnInit, Output, EventEmitter, ViewChild} from '@angula
 import {DiagramMakerNode} from "diagram-maker";
 import {
   PipelineDefinitionInfo,
-  Raw, StageAndGatewayDefinitionInfo,
+  StageAndGatewayDefinitionInfo,
   StageDefinitionInfo,
   StageDefinitionInfoUnion, StageWorkerDefinitionInfo, StageXOrGatewayDefinitionInfo,
 } from "../../api/winslow-api";
@@ -63,7 +63,7 @@ export class DiagramLibraryComponent implements OnInit {
 
   saveEdit(savedForm: Object) {   //receives the chaneged data from the edit-forms and saves it in the board and in the node
     if (1 in savedForm) {
-      this.formObj = savedForm[1] as Raw<StageDefinitionInfoUnion>; //todo unsafe
+      this.formObj = savedForm[1] as StageDefinitionInfoUnion; //todo unsafe
     }
     this.editNode.emit(this.formObj);
   }
