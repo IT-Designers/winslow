@@ -11,13 +11,17 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   padding: 5px;
+  border-bottom: 1px solid lightgray;
+  margin-left: 0.4em;
+  margin-right: 0.4em;
 }
 
 .subtitle {
-  font-size: small;
+  padding-top: 0.5em;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  /*font-size: small;*/
 }
 .pipeline-def{
   border: 2px dashed black;
