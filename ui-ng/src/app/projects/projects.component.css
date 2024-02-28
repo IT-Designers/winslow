@@ -56,7 +56,7 @@
 
 .project-container {
   background: var(--color-background-dark);
-  padding: 0 1em;
+  /*padding: 0 1em;*/
   height: 100%;
 }
 
