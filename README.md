@@ -1,10 +1,29 @@
+# Winslow <img src="docs/img/winslow_friendly_flipped.png" alt="winslow log" width="80">
+
+---
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
-# Winslow 
-TODO: Explain what is winslow!
+[![Wiki](https://img.shields.io/badge/Wiki-Read%20More-blue)](https://github.com/IT-Designers/winslow/wiki)
+![Docker Pulls](https://img.shields.io/docker/pulls/itdesigners1/winslow?logo=docker)
+
+Winslow is a distributed and automated pipeline management system initially designed for traffic flow analysis through computer vision.
+It is focused on easy deployment for small to medium-sized environments with minimum administrative overhead.
+The current development is primarily driven by its original purpose.
+However, the design makes it usable for a wide range of applications, which needs data processing, machine learning, and more.
+![architecture.png](docs%2Fimg%2Farchitecture.png)
+
+## Quick Overview
+* How to Start
+    * [Start from Docker](README.md#Starting-with-Docker)
+    * [Start from Source](README.md#Starting-from-Source)
+    * [Start from IDE](README.md#Setup-Local-Development)
+* Read the [Wiki](README.md#Watch-the-Wiki)
+
+## Watch the Wiki
+See the [winslow wiki](https://github.com/IT-Designers/winslow/wiki) for more information about technical details and how to use winslow.
 
 ## Prerequisite
-This Project is designed to be used for a _Linux Environment_. <br>
-:warning: It is not tested for a Windows Environment. :warning:
+This Project is designed for a _Linux Environment_. <br>
+:warning: Windows is not supported :warning:
 
 ### Software dependencies
 * Docker
@@ -13,6 +32,13 @@ This Project is designed to be used for a _Linux Environment_. <br>
 * Angular 17
 * Node 18.13.0
 * npm 8.19.3
+
+### Minimum Hardware Requirements
+* 2GB RAM
+* 2 vCPU
+* 10GB Storage
+* NVIDIA GPU (optional)
+
 
 ## Starting with Docker
 See [Winslow Docker Image](node/README.md#Winslow-Docker-Image) for more information.
@@ -23,9 +49,9 @@ This is a universal step-by-step approach, the **commands and directories are de
 1. Create a workdir, for example in the project root:
     * `cd winslow && mkdir workdir`
 * run the project 
-  * **without** an IDE then goto [Run locally](README.md#run-locally)
+  * **without** an IDE then goto [Run in terminal](README.md#run-in-terminal)
   * **with** an IDE then goto [Run with IDE](README.md#setup-local-development)
-## Run locally
+## Run in terminal
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
    * `(cd ui-ng && npm install && npm run build && npm run start)`
@@ -52,12 +78,11 @@ This is a universal step-by-step approach, the **commands and directories are de
 
 ## Setup Local Development
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
-If you encounter a problem, see the [troubleshooting](README.md#troubleshooting) section.
 <br>
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 > [!NOTE]
-> Read this step in the markdown preview of Intellij to finish the setup.
+> Read this step in the markdown preview of IntelliJ to finish the setup.
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 
@@ -71,3 +96,10 @@ Click here to start backend: `winslow-application`
 #### Start Frontend
 Click here to start frontend: `start fe`
 
+## 
+
+
+#### Origin
+<sub>
+Winslow was originally created as part of the [thesis](https://github.com/kellerkindt/master-thesis/blob/master/main.pdf) in 2019/2020 at IT-Designers GmbH (https://www.it-designers.de).
+</sub>
