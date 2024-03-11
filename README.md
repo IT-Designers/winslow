@@ -1,6 +1,5 @@
 # Winslow <img src="docs/img/winslow_friendly_flipped.png" alt="winslow log" width="80">
 
----
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
 [![Wiki](https://img.shields.io/badge/Wiki-Read%20More-blue)](https://github.com/IT-Designers/winslow/wiki)
 ![Docker Pulls](https://img.shields.io/docker/pulls/itdesigners1/winslow?logo=docker)
@@ -9,6 +8,7 @@ Winslow is a distributed and automated pipeline management system initially desi
 It is focused on easy deployment for small to medium-sized environments with minimum administrative overhead.
 The current development is primarily driven by its original purpose.
 However, the design makes it usable for a wide range of applications, which needs data processing, machine learning, and more.
+See the System Architecture below for a high-level overview.
 ![architecture.png](docs%2Fimg%2Farchitecture.png)
 
 ## Quick Overview
