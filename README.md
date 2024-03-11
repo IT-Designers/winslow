@@ -16,10 +16,7 @@ See the System Architecture below for a high-level overview.
     * [Start from Docker](README.md#Starting-with-Docker)
     * [Start from Source](README.md#Starting-from-Source)
     * [Start from IDE](README.md#Setup-Local-Development)
-* Read the [Wiki](README.md#Watch-the-Wiki)
-
-## Watch the Wiki
-See the [winslow wiki](https://github.com/IT-Designers/winslow/wiki) for more information about technical details and how to use winslow.
+* Read the [wiki](https://github.com/IT-Designers/winslow/wiki) for more information about technical details and how to use winslow.
 
 ## Prerequisite
 This Project is designed for a _Linux Environment_. <br>
