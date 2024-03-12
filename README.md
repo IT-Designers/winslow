@@ -94,6 +94,5 @@ Click here to start backend: `winslow-application`
 Click here to start frontend: `start fe`
 
 #### Origin
-<sub>
 Winslow was originally created as part of the [thesis](https://github.com/kellerkindt/master-thesis/blob/master/main.pdf) in 2019/2020 at IT-Designers GmbH (https://www.it-designers.de).
-</sub>
+
