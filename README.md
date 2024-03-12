@@ -83,7 +83,7 @@ Currently only [intellij setup](README.md#intellij-setup) is documented, feel fr
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 
-![node_npm_version.png](docs/img/node_npm_version.png)
+![node_npm_version.png](docs/images/node_npm_version.png)
 
 #### Start Backend
 Click here to start backend: `winslow-application`
