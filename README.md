@@ -3,6 +3,7 @@
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
 [![Wiki](https://img.shields.io/badge/Wiki-Read%20More-blue)](https://github.com/IT-Designers/winslow/wiki)
 ![Docker Pulls](https://img.shields.io/docker/pulls/itdesigners1/winslow?logo=docker)
+![GitHub License](https://img.shields.io/github/license/IT-Designers/winslow)
 
 Winslow is a distributed and automated pipeline management system initially designed for traffic flow analysis through computer vision.
 It is focused on easy deployment for small to medium-sized environments with minimum administrative overhead.
