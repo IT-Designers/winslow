@@ -98,6 +98,14 @@ Click here to start frontend: `start fe`
 ### 1. The documentation said _click here_ but there is nothing to click?
 * Make sure you are reading this in the markdown preview from Intellij
 
-#### Origin
-Winslow was originally created as part of the [thesis](https://github.com/kellerkindt/master-thesis/blob/master/main.pdf) in 2019/2020 at IT-Designers GmbH (https://www.it-designers.de).
+## Origin
+<sub>
+Winslow was originally created as part of the <a href="https://github.com/kellerkindt/master-thesis/blob/master/main.pdf">thesis</a> in 2019/2020 at IT-Designers GmbH (https://www.it-designers.de).
+</sub>
 
+
+## License
+<sup>
+Licensed under <a href="LICENSE">MIT license</a>.
+</sup>
+<br>
