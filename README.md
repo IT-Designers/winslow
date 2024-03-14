@@ -10,7 +10,7 @@ It is focused on easy deployment for small to medium-sized environments with min
 The current development is primarily driven by its original purpose.
 However, the design makes it usable for a wide range of applications, which needs data processing, machine learning, and more.
 See the System Architecture below for a high-level overview.
-![architecture.png](docs%2Fimg%2Farchitecture.png)
+![architecture.png](docs/images/architecture.png)
 
 ## Quick Overview
 * How to Start
@@ -20,11 +20,29 @@ See the System Architecture below for a high-level overview.
 * Read the [wiki](https://github.com/IT-Designers/winslow/wiki) for more information about technical details and how to use winslow.
 
 ## Prerequisite
-This Project is designed for a _Linux Environment_. <br>
-:warning: Windows is not supported :warning:
+
+## Build status
+
+| Windows                                                                                                                                                                                     | Ubuntu                                                                                                                                                                                              | Other Linux                                                                                                                                                                                                | Mac                                                                                                                                                                                       |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ![:no_entry:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmxwaW5vY3oyYnkwM3oxNWEwMXU0NXB6ZHMzMWJsYm1ycm11NDZodSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hv5AEBpH3ZyNoRnABG/giphy.gif) | ![:white_check_mark:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExazgxOGtwbHQzaXM1aDIwNjR0Yjhpbmhrb2UzN2h1bDk1eDcycGpxbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhweiVB36rAlqVCE/giphy.gif) | ![should work but not tested](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZm5nYXQxcDd5b2NrcHJqbDFteGYydW92eGd4M3RlZXozd2kxM2c3cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l2YWqRKqE6xOG5qSc/giphy.gif) | ![Alt Text](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXVwaWt6OTNyN2Z3eTU0NHoxN3dwbHRoN3pnZzJjMnh1OTBmbDA1OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84sIqsVAJNfWyjy8/giphy.gif) |
+| :no_entry:                                                                                                                                                                                  | :white_check_mark:                                                                                                                                                                                  | :question: :thinking:                                                                                                                                                                                      | :question: :shrug:                                                                                                                                                                        |
+
+
+
+<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/hv5AEBpH3ZyNoRnABG" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/windows-error-hv5AEBpH3ZyNoRnABG">via GIPHY</a></p>
+
+> [!IMPORTANT]
+> This Project is designed for a __Linux Environment__ and tested with _ubuntu_.<br>
+
+> [!CAUTION] 
+> __Windows is not supported__ and __macOS is not tested__.
 
 ### Software dependencies
+#### Running
 * Docker
+
+#### Building
 * Java 17
 * Maven 3.6.3
 * Angular 17
