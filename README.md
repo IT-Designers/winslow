@@ -17,32 +17,21 @@ See the System Architecture below for a high-level overview.
     * [Start from Docker](README.md#Starting-with-Docker)
     * [Start from Source](README.md#Starting-from-Source)
     * [Start from IDE](README.md#Setup-Local-Development)
-* Read the [wiki](https://github.com/IT-Designers/winslow/wiki) for more information about technical details and how to use winslow.
+* A User Guide and Technical Documentation is available in the [wiki](https://github.com/IT-Designers/winslow/wiki)
 
 ## Prerequisite
-
-## Build status
-
-| Windows                                                                                                                                                                                     | Ubuntu                                                                                                                                                                                              | Other Linux                                                                                                                                                                                                | Mac                                                                                                                                                                                       |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+### Supported Operating Systems
+| Windows                                                                                                                                                                                    | Ubuntu                                                                                                                                                                                              | Other Linux                                                                                                                                                                                                | Mac                                                                                                                                                                                       |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ![:no_entry:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmxwaW5vY3oyYnkwM3oxNWEwMXU0NXB6ZHMzMWJsYm1ycm11NDZodSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hv5AEBpH3ZyNoRnABG/giphy.gif) | ![:white_check_mark:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExazgxOGtwbHQzaXM1aDIwNjR0Yjhpbmhrb2UzN2h1bDk1eDcycGpxbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhweiVB36rAlqVCE/giphy.gif) | ![should work but not tested](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZm5nYXQxcDd5b2NrcHJqbDFteGYydW92eGd4M3RlZXozd2kxM2c3cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l2YWqRKqE6xOG5qSc/giphy.gif) | ![Alt Text](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXVwaWt6OTNyN2Z3eTU0NHoxN3dwbHRoN3pnZzJjMnh1OTBmbDA1OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84sIqsVAJNfWyjy8/giphy.gif) |
-| :no_entry:                                                                                                                                                                                  | :white_check_mark:                                                                                                                                                                                  | :question: :thinking:                                                                                                                                                                                      | :question: :shrug:                                                                                                                                                                        |
+| not supported :no_entry:                                                                                                                                                                   | supported :white_check_mark:                                                                                                                                                                        | not tested :question:                                                                                                                                                                           | not supported :no_entry:                                                                                                                                                                  |
 
-
-
-<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/hv5AEBpH3ZyNoRnABG" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/windows-error-hv5AEBpH3ZyNoRnABG">via GIPHY</a></p>
-
-> [!IMPORTANT]
-> This Project is designed for a __Linux Environment__ and tested with _ubuntu_.<br>
-
-> [!CAUTION] 
-> __Windows is not supported__ and __macOS is not tested__.
 
 ### Software dependencies
 #### Running
 * Docker
 
-#### Building
+#### Building & Running from Source
 * Java 17
 * Maven 3.6.3
 * Angular 17
@@ -54,7 +43,6 @@ See the System Architecture below for a high-level overview.
 * 2 vCPU
 * 10GB Storage
 * NVIDIA GPU (optional)
-
 
 ## Starting with Docker
 See [Winslow Docker Image](node/README.md#Winslow-Docker-Image) for more information.
