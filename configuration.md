@@ -4,7 +4,9 @@
 ### Environment Variables
 #### required
 * `WINSLOW_WORK_DIRECTORY` Absolut path to the working directory that has to be on a nfs
-    * Example `/winslow/workdirectory/that/is/on/nfs`
+    * `Values`
+      * default: `/winslow/`
+      * Example `/winslow/workdirectory/that/is/on/nfs`
 #### optional
 * `WINSLOW_NO_STAGE_EXECUTION` stage execution, act as observer / web-accessor
     * `Values`
@@ -35,34 +37,56 @@
     * `Values`
         * `0` disables
         * `1` enables
+### sort
 
-#### NFS-Server WHAT ABOUT THIS?
-Install `nfs-kernel-server`: `sudo apt install nfs-kernel-server` and update `/etc/export`:
+* WINSLOW_STORAGE_TYPE defines the type
+    * `Values`
+      * default `bind` used for local storage
+      * `nfs` network file storage
 
-```nfs
-/path/to/nfs-export *(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0)
-/path/to/nfs-export/run *(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0)
+* WINSLOW_NODE_NAME
+    * `Values`
+      * default: name of host from `/etc/hostname`
+* WINSLOW_API_PATH defines the root uri for the backend server
+    * `Values`
+      * `default`: "/api/v1/"
 
-```
+* WINSLOW_WEBSOCKET_PATH 
+    * `Values`
+      * `default`:  "/ws/v1/"
 
+* WINSLOW_STATIC_HTML
+    * `Values`
+* WINSLOW_DEV_ENV_IP: defines for development? TODO
+    * `Values`
+      * Example: 10.20.30.40
+* WINSLOW_WEB_REQUIRE_SECURE: activates usage of TLS certificate? TODO
+    * `Values`
+        * `0` disables
+        * `1` enables
 
-Add to `/etc/fstab` an entry to mount the nfs directory
+* WINSLOW_LOCK_DURATION_MS lock something don't know what TODO
+    * `Values`
+        * minimum: 10s
+      * `default`: 5min
+* WINSLOW_LDAP_URL
+    * `Values`
+        * `0` disables
+        * `1` enables
+* WINSLOW_ROOT_USERS
+    * `Values`
+        * `0` disables
+        * `1` enables
+* WINSLOW_AUTH_METHOD
+    * `Values`
+        * `ldap`
+        * `local`
+* WINSLOW_BACKEND
+    * `Values`
+        * `0` disables
+        * `1` enables
+* WINSLOW_BACKEND_DOCKER
+    * `Values`
+        * `0` disables
+        * `1` enables
 
-```fstab
-<your-pc-name>:/path/to/nfs-export /home/<username>/path/to/nfs-mount nfs noauto 0 0
-
-# winslow/run store very small temporary files, making it a tmpfs makes it faster (ram-fs)
-tmpfs /path/to/nfs-export/run tmpfs size=1G,mode=760,noauto 0 0
-```
-
-
-Run the following script (`./start-nfs-server.sh`):
-
-```bash
-#!/bin/bash
-
-sudo mount nfs-export/run
-sudo service nfs-kernel-server restart
-sleep 5
-sudo mount nfs-mount
-```
