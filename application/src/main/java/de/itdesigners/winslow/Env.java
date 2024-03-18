@@ -30,6 +30,9 @@ public class Env {
     public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
     public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
 
+    /**
+     * This variable is resolved in the SecurityConfig from SpringBoot don't to this, the winslow way is to use {@link de.itdesigners.winslow.Env}
+     */
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
 
     public static final String ROOT_USERS = SELF_PREFIX + "_ROOT_USERS";

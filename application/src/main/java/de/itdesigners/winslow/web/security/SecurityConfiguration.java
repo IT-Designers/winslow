@@ -38,6 +38,10 @@ public class SecurityConfiguration {
 
     private static final Logger LOG = Logger.getLogger(SecurityConfiguration.class.getSimpleName());
 
+
+    /**
+     * This variables should be resolved from one place, the winslow way is to use {@link de.itdesigners.winslow.Env}
+     */
     private @Value("${winslow.ldap.user.search-base:#{null}}")             String userSearchBase;
     private @Value("${winslow.ldap.user.search-filter:#{\"(uid={0})\"}}")  String userSearchFilter;
     private @Value("${winslow.ldap.group.search-base:#{null}}")            String groupSearchBase;
