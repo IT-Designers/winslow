@@ -71,20 +71,17 @@
       * `default`: 5min
 * WINSLOW_LDAP_URL
     * `Values`
-        * `0` disables
-        * `1` enables
-* WINSLOW_ROOT_USERS
+      * URL of the LDAP Server
+* WINSLOW_ROOT_USERS a list of users splited by __,__
     * `Values`
-        * `0` disables
-        * `1` enables
-* WINSLOW_AUTH_METHOD
+        * 
+* WINSLOW_AUTH_METHOD specifies the authentication backend for user management
     * `Values`
         * `ldap`
         * `local`
-* WINSLOW_BACKEND
+* WINSLOW_BACKEND defines the OCI backend, currently only Docker is supported
     * `Values`
-        * `0` disables
-        * `1` enables
+        * `docker` 
 * WINSLOW_BACKEND_DOCKER
     * `Values`
         * `0` disables
