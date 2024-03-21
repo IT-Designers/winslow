@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public class Env {
 
+    private static final String NO_AUTH_API_PATH = "/api/v1/noauth/";
+
     public static final int LOCK_DURATION_MIN_MS     = 10 * 1_000; // 10s
     public static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
     public static final int LOCK_DURATION_LOGS_MS    = LOCK_DURATION_DEFAULT_MS;
@@ -31,7 +33,7 @@ public class Env {
     public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
 
     /**
-     * This variable is resolved in the SecurityConfig from SpringBoot don't to this, the winslow way is to use {@link de.itdesigners.winslow.Env}
+     * This variable is resolved in the SecurityConfig from SpringBoot don't to this, the winslow way is to use {@link Env}
      */
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
 
@@ -79,11 +81,7 @@ public class Env {
 
     @Nonnull
     public static String getApiNoAuthPath() {
-        //return System.getenv().getOrDefault(WINSLOW_API_NO_AUTH_PATH, "/api/v1/noauth/");
-
-        // old delete
-        return System.getenv().getOrDefault(API_PATH, "/api/v1/noauth/");
-        // make check that NO_AUTH_PATH and _API_AUTH_PATH are not the same, sonst hebelt man die seucrity aus
+        return NO_AUTH_API_PATH;
     }
 
     @Nonnull

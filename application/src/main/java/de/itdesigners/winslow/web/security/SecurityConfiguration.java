@@ -40,7 +40,7 @@ public class SecurityConfiguration {
 
 
     /**
-     * This variables should be resolved from one place, the winslow way is to use {@link de.itdesigners.winslow.Env}
+     * This variables should be resolved from one place, the winslow way is to use {@link Env}
      */
     private @Value("${winslow.ldap.user.search-base:#{null}}")             String userSearchBase;
     private @Value("${winslow.ldap.user.search-filter:#{\"(uid={0})\"}}")  String userSearchFilter;
