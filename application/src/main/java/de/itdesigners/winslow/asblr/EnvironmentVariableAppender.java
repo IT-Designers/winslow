@@ -69,7 +69,10 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                 )
                 .withInternalEnvVariable(
                         Env.SELF_PREFIX + "_WORKSPACE_NESTED_WITHIN_GROUP",
-                        String.valueOf(context.getExecutionGroup().getWorkspaceConfiguration().nestedWithinGroupExclusive())
+                        String.valueOf(context
+                                               .getExecutionGroup()
+                                               .getWorkspaceConfiguration()
+                                               .nestedWithinGroupExclusive())
                 );
 
         submission.getId().getStageNumberWithinGroup().ifPresent(number -> {
@@ -82,15 +85,15 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     .getSubmission()
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_CORES",
-                            String.valueOf(workerDefinition.requirements().getCpus())
+                            String.valueOf(workerDefinition.requirements().getCpus().orElse(0))
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_CORES_IS_DEPRECATED",
-                            String.valueOf(workerDefinition.requirements().getCpus())
+                            String.valueOf(workerDefinition.requirements().getCpus().orElse(0))
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_CPU_COUNT",
-                            String.valueOf(workerDefinition.requirements().getCpus())
+                            String.valueOf(workerDefinition.requirements().getCpus().orElse(0))
                     )
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_MB",
@@ -99,14 +102,14 @@ public class EnvironmentVariableAppender implements AssemblerStep {
                     .withInternalEnvVariable(
                             Env.SELF_PREFIX + "_RES_RAM_GB",
                             String.valueOf(workerDefinition.requirements().getMegabytesOfRam().orElse(0L) / 1024)
+                    )
+                    .withInternalEnvVariable(
+                            Env.SELF_PREFIX + "_RES_GPU_COUNT",
+                            String.valueOf(workerDefinition.requirements().getGpu().getCount())
                     );
-            var s = sub.withInternalEnvVariable(
-                    Env.SELF_PREFIX + "_RES_GPU_COUNT",
-                    String.valueOf(workerDefinition.requirements().getGpu().getCount())
-            );
 
             workerDefinition.requirements().getGpu().getVendor().ifPresent(vendor -> {
-                s.withInternalEnvVariable(
+                sub.withInternalEnvVariable(
                         Env.SELF_PREFIX + "_RES_GPU_VENDOR",
                         vendor
                 );
