@@ -1,12 +1,19 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {createRangedList, createRangeWithStepSize, createWorkspaceConfiguration, ProjectApiService,} from '../api/project-api.service';
+import {
+  createRangedList,
+  createRangeWithStepSize,
+  createWorkspaceConfiguration,
+  ProjectApiService,
+} from '../api/project-api.service';
 
 import {
   EnvVariable,
   ExecutionGroupInfo,
+  GpuRequirementsInfo,
   ImageInfo,
   PipelineDefinitionInfo,
   RangedValueUnion,
+  RequirementsInfo,
   ResourceInfo,
   StageDefinitionInfo,
   StageWorkerDefinitionInfo,
@@ -14,9 +21,7 @@ import {
   WorkspaceMode
 } from '../api/winslow-api';
 
-import {
-  isRangedList, isRangeWithStepSize,
-} from "../api/pipeline-api.service";
+import {isRangedList, isRangeWithStepSize,} from "../api/pipeline-api.service";
 import {parseArgsStringToArgv} from "string-argv";
 
 
@@ -34,6 +39,7 @@ export class StageExecutionSelectionComponent implements OnInit {
 
   @Input() pipelines: PipelineDefinitionInfo[] = [];
   @Input() pipelineSelectionDisabled = false;
+
   @Input()
   set stageDefinition(stageDefinition: StageWorkerDefinitionInfo | undefined) {
     if (stageDefinition) {
@@ -42,6 +48,7 @@ export class StageExecutionSelectionComponent implements OnInit {
       this.updateValid();
     }
   };
+
   @Input() stageSelectionDisabled: boolean = false;
 
   @Output('selectedPipeline') private selectedPipelineEmitter = new EventEmitter<PipelineDefinitionInfo>();
@@ -71,7 +78,7 @@ export class StageExecutionSelectionComponent implements OnInit {
   rangedEnvironmentVariablesUpdated?: Map<string, RangedValueUnion>;
 
 
-  static deepClone(image: object) {
+  static deepClone<T>(image: T): T {
     return JSON.parse(JSON.stringify(image));
   }
 
@@ -203,7 +210,16 @@ export class StageExecutionSelectionComponent implements OnInit {
             this.selectedStage = stage;
             this.selectedStageEmitter.emit(stage);
             this.image = StageExecutionSelectionComponent.deepClone(stage.image);
-            this.resources = stage.requiredResources != null ? StageExecutionSelectionComponent.deepClone(stage.requiredResources) : null;
+
+            if (stage.requiredResources != null) {
+              this.resources = new ResourceInfo(
+                {
+                  cpus: stage.requiredResources.cpus,
+                  gpus: stage.requiredResources.gpu?.count ?? 0,
+                  megabytesOfRam: stage.requiredResources.megabytesOfRam
+                }
+              );
+            }
 
             const requiredEnvironmentVariables: string[] = [];
             this.selectedPipeline.userInput.requiredEnvVariables.forEach(key => requiredEnvironmentVariables.push(key));
