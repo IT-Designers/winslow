@@ -7,14 +7,15 @@ import {lastValueFrom, Subscription} from 'rxjs';
 import {Message} from '@stomp/stompjs';
 import {ChangeEvent} from './api.service';
 import {
-  AuthTokenInfo,
+  AuthTokenInfo, EnqueueRequest,
   EnvVariable,
   ExecutionGroupInfo,
   ImageInfo,
   LogEntryInfo,
   PipelineDefinitionInfo,
   ProjectInfo,
-  RangedList, RangedValue,
+  RangedList,
+  RangedValue, RangedValueUnion,
   RangeWithStepSize,
   ResourceInfo,
   ResourceLimitation,
@@ -22,7 +23,8 @@ import {
   StageDefinitionInfoUnion,
   StageInfo,
   StageWorkerDefinitionInfo,
-  StageXOrGatewayDefinitionInfo, State,
+  StageXOrGatewayDefinitionInfo,
+  State,
   StateInfo,
   StatsInfo,
   WorkspaceConfiguration,
@@ -244,7 +246,7 @@ export class ProjectApiService {
     projectId: string,
     nextStageId: string,
     env: any,
-    rangedEnv?: Map<string, RangeWithStepSize>,
+    rangedEnv?: Record<string, RangedValueUnion>,
     image?: ImageInfo,
     requiredResources?: ResourceInfo,
     workspaceConfiguration?: WorkspaceConfiguration,
@@ -255,7 +257,7 @@ export class ProjectApiService {
     return lastValueFrom(
       this.client.post<void>(
         ProjectApiService.getUrl(`${projectId}/enqueued`),
-        {
+        new EnqueueRequest({
           id: nextStageId,
           env,
           rangedEnv,
@@ -266,7 +268,7 @@ export class ProjectApiService {
           runSingle,
           resume
         }
-      )
+      ))
     );
   }
 
@@ -810,6 +812,7 @@ export class ExecutionGroupInfoHelper {
   constructor(executionGroupInfo: ExecutionGroupInfo) {
     this.executionGroupInfo = executionGroupInfo;
   }
+
   rangedValuesKeys(): string[] {
     return Object.keys(this.executionGroupInfo.rangedValues);
   };
