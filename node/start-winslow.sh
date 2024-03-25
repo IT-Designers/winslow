@@ -9,16 +9,22 @@ LOG_DATE_FORMAT="%m-%d %H:%M:%S"
 
 HTTP="80"
 #HTTPS="443"
-#NODE_TYPE="executor" #?
-NODE_TYPE="observer" #?
-STORAGE_TYPE="nfs"
-STORAGE_PATH="/var/nfs/winslow/workdir"
+NODE_TYPE="executor" # performs actions
+#NODE_TYPE="observer" # only watches
+STORAGE_TYPE="bind"
+
+#adjust to your needs! 
+STORAGE_PATH="/winslow/workspace"
 #KEYSTORE_PATH_PKCS12="/root/winslow.itd-intern.de.p12"
 ADDITIONAL=""
 
+#for remote debugging
+ADDITIONAL+=" -p 5005:5005 -e JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 "
+
+
 # for dev env
 ADDITIONAL+="-p 446:4646 "
-ADDITIONAL+=" -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=michael "
+ADDITIONAL+=" -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=remote -e WINSLOW_ROOT_USERS=remote"
 
 # set this on the nfs-server!
 ADDITIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
@@ -30,12 +36,12 @@ ADDITIONAL+=" -e WINSLOW_NO_DIRTY_BYTES_ADJUSTMENT=1 "
 ##### common part starts here
 
 PARAMS="$@"
-#IMAGE="winslow"
+# adjust image for your needs
 IMAGE="itdesigners1/winslow:2024.1-dev"
 NODE_NAME="$(hostname)"
 CONTAINER_NAME="winslow"
 GPUS="$(ls /dev/ | grep -i nvidia | wc -l)"
-WORKDIR="/winslow/workdir"
+WORKDIR="/winslow"
 WEB_PORT="$HTTP"
 SUDO=""
 
@@ -95,7 +101,7 @@ fi
 
 
 echo " ::::: Starting Winslow Container now"
-echo $SUDO docker run --rm --privileged \
+echo $SUDO docker run -itd --rm --privileged \
     --name "$CONTAINER_NAME" \
     $([ "$GPUS" -gt 0 ] && echo " --gpus all") \
     $([ "$HTTP" != "" ] && echo " -p $HTTP:$WEB_PORT") \
@@ -107,7 +113,7 @@ echo $SUDO docker run --rm --privileged \
     -e WINSLOW_WORK_DIRECTORY=$WORKDIR \
     -e "WINSLOW_NODE_NAME=$NODE_NAME" \
     $([ "$NODE_TYPE" == "observer" ] && echo " -e WINSLOW_NO_STAGE_EXECUTION=1 ") \
-    $([ "$STORAGE_TYPE" == "bind" ] && echo " -v $STORAGE_PATH:/winslow") \
+    $([ "$STORAGE_TYPE" == "bind" ] && echo " -v $STORAGE_PATH:$WORKDIR") \
     -v /var/run/docker.sock:/var/run/docker.sock \
     $IMAGE \
     $PARAMS | bash
