@@ -41,20 +41,6 @@ class EnvTest {
         assertEquals("/api/v1/noauth/", Env.getApiNoAuthPath());
     }
 
-/*
-    @Test
-    @SetEnvironmentVariable(key = "WINSLOW_API_PATH", value = "/api/v1/noauth/")
-    void whenGetApiNoAuthPathGivenApiPathIsTheSameAsHardCodedNoAuthPathThenThrowException() {
-        assertThrows(IllegalArgumentException.class, Env::getApiNoAuthPath);
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "WINSLOW_API_PATH", value = "/api/v2/auth")
-    void whenGetApiNoAuthPathGivenApiPathIsDifferentThenReturnHardCodedNoAuthApiPath() {
-        assertEquals("/api/v1/noauth/", Env.getApiNoAuthPath());
-    }
-*/
-
     @Test
     void whenGetRootUsersGivenNoRootUsersThenReturnEmptyList() {
         assertEquals(0, Env.getRootUsers().length);
@@ -83,25 +69,46 @@ class EnvTest {
         assertEquals("kristin-paul", Env.getRootUsers()[0]);
     }
 
+    @Nested
+    class IsLocalAuthEnabledTests {
+        // These are white box tests, not refactoring stable!!!
+
+        //explicit
+        @Test
+        @SetEnvironmentVariable(key = "WINSLOW_AUTH_METHOD", value = "local")
+        void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHODIsLocalThenReturnTrue() {
+            assertTrue(Env.isLocalAuthEnabled());
+        }
+
+        @Test
+        @SetEnvironmentVariable(key = "WINSLOW_AUTH_METHOD", value = "!local")
+        void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHODIsNotLocalThenReturnFalse() {
+            assertFalse(Env.isLocalAuthEnabled());
+        }
+
+        //implicit
+        @Test
+        void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHOD_IsNullAnd_WINSLOW_DEV_ENV_IsNullThenReturnTrue() {
+            assertTrue(Env.isLocalAuthEnabled());
+        }
+
+        @Test
+        @SetEnvironmentVariable(key = "WINSLOW_DEV_ENV", value = "1")
+        void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHOD_IsNullAnd_WINSLOW_DEV_ENV_IsEnabledThenReturnFalse() {
+            assertFalse(Env.isLocalAuthEnabled());
+        }
+
+        @Test
+        @SetEnvironmentVariable(key = "WINSLOW_DEV_ENV", value = "0")
+        @SetEnvironmentVariable(key = "WINSLOW_AUTH_METHOD", value = "!local")
+        void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHOD_IsNotLocalAnd_WINSLOW_DEV_ENV_IsDisabledThenReturnFalse() {
+            assertFalse(Env.isLocalAuthEnabled());
+        }
+    }
+
     @Test
     void whenGetRootUsersGivenRootUsersNotSetThenReturnEmptyList() {
         assertEquals(0, Env.getRootUsers().length);
-    }
-
-    @Test
-    void whenIsLocalAuthEnabledGivenWINSLOW_AUTH_METHODIsLocalThenReturnTrue() {
-        assertTrue(Env.isLocalAuthEnabled());
-    }
-
-    @Test
-    void whenIsLocalAuthEnabledGivenWinslowAuthMethodIsUnsetAndWinslowDevEnvIsDisabledThenReturnTrue() {
-        assertTrue(Env.isLocalAuthEnabled());
-    }
-
-    @Test
-    @SetEnvironmentVariable(key = "WINSLOW_ROOT_USERS", value = "kristin-paul")
-    void whenIsLocalAuthEnabledGivenWinslowAuthMethodIsSetAndWinslowDevEnvIsDisabledThenReturnFalse() {
-        assertFalse(Env.isLocalAuthEnabled());
     }
 
 }
