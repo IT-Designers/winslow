@@ -5,7 +5,7 @@ public class Backoff {
     private final int   min;
     private final int   max;
     private final float multiplier;
-    private       float sleepMs = 0;
+    private       float sleepInMs = 0;
 
     private final JavaThreadSleepWrapper javaThreadSleepWrapper;
 
@@ -17,15 +17,15 @@ public class Backoff {
     }
 
     public void grow() {
-        sleepMs = Math.min(max, Math.max(min, sleepMs * multiplier));
+        sleepInMs = Math.min(max, Math.max(min, sleepInMs * multiplier));
     }
 
     public void reset() {
-        sleepMs = min;
+        sleepInMs = min;
     }
 
-    public long getSleepMs() {
-        return (long) sleepMs;
+    public long getSleepInMs() {
+        return (long) sleepInMs;
     }
 
     public void sleep() {
@@ -34,7 +34,7 @@ public class Backoff {
 
     public void sleep(long max) {
         try {
-            javaThreadSleepWrapper.sleep(Math.min(max, getSleepMs()));
+            javaThreadSleepWrapper.sleep(Math.min(max, getSleepInMs()));
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
