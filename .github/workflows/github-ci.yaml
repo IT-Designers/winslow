@@ -140,15 +140,15 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_HTML
 
-      - name: Build winslow:${{ GITHUB_REF_NAME }}
+      - name: Build winslow:${{ github.ref_name }}
         run: |
           cd node
           docker build . -t winslow:$GITHUB_REF_NAME --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
-      - name: Prepare upload of winslow:${{ GITHUB_REF_NAME }} image to github
+      - name: Prepare upload of winslow:${{ github.ref_name }} image to github
         run: |
           docker save winslow:$GITHUB_REF_NAME -o winslow-$GITHUB_REF_NAME.tar
-      - name: Upload winslow-${{ GITHUB_REF_NAME }} image to github
+      - name: Upload winslow-${{ github.ref_name }} image to github
         uses: actions/upload-artifact@v4
         with:
           retention-days: 1
@@ -157,7 +157,7 @@ jobs:
           path: |
             winslow-*.tar
 
-      - name: Smoke test winslow:${{ GITHUB_REF_NAME }}
+      - name: Smoke test winslow:${{ github.ref_name }}
         run: |
           docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock winslow:$GITHUB_REF_NAME
           success=false
@@ -210,7 +210,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download winslow:${{ GITHUB_REF_NAME }}-${{ github.run_id }}
+      - name: Download winslow:${{ github.ref_name }}-${{ github.run_id }}
         uses: actions/download-artifact@v4
         with:
           name: winslow-${{ GITHUB_REF_NAME }}-${{ github.run_id }}
