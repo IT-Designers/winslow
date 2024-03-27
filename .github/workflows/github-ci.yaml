@@ -8,31 +8,34 @@ on:
   workflow_dispatch:
     branches:
       - '**'
-env:
-  GITHUB_SHA7: 'unset'
-  APPENDIX: 'unset'
-  SERVER_ARTIFACT: 'unset'
-  HTML_ARTIFACT: 'unset'
-  WINSLOW_IMAGE_ARTIFACT: 'unset'
-
 
 jobs:
-  create-variables:
+  variables:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: set variables
+        id: variables
         run: |
           GITHUB_SHA7=$(git rev-parse --short=7 ${{ github.sha }})
           APPENDIX=${{ github.ref_name }}-$GITHUB_SHA7-${{ github.run_id }}
-          echo "GITHUB_SHA7=$GITHUB_SHA7" >> $GITHUB_ENV
-          echo "APPENDIX=$APPENDIX" >> $GITHUB_ENV
-          echo "SERVER_ARTIFACT=jar-$APPENDIX" >> $GITHUB_ENV
-          echo "HTML_ARTIFACT=html-$APPENDIX" >> $GITHUB_ENV
-          echo "WINSLOW_IMAGE_ARTIFACT=winslow-$APPENDIX" >> $GITHUB_ENV
+          echo "GITHUB_SHA7=$GITHUB_SHA7" >> $GITHUB_OUTPUT
+          echo "APPENDIX=$APPENDIX" >> $GITHUB_OUTPUT
+          echo "SERVER_ARTIFACT=jar-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "HTML_ARTIFACT=html-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "WINSLOW_IMAGE_ARTIFACT=winslow-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "WINSLOW_IMAGE=winslow:$APPENDIX" >> $GITHUB_OUTPUT
+    outputs:
+      GITHUB_SHA7: ${{ steps.variables.outputs.GITHUB_SHA7 }}
+      APPENDIX: ${{ steps.variables.outputs.APPENDIX }}
+      SERVER_ARTIFACT: ${{ steps.variables.outputs.SERVER_ARTIFACT }}
+      HTML_ARTIFACT: ${{ steps.variables.outputs.HTML_ARTIFACT }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ steps.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
+      WINSLOW_IMAGE: ${{ steps.variables.outputs.WINSLOW_IMAGE }}
+
 
   server-test:
-    needs: create-variables
+    needs: variables
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,11 +47,12 @@ jobs:
       - name: Test
         run: |
           mvn test
-          echo ${{ env.SERVER_ARTIFACT }}
-          echo $SERVER_ARTIFACT
 
   server-build:
-    needs: create-variables
+    needs: variables
+    env:
+      GITHUB_SHA7: ${{ needs.variables.outputs.GITHUB_SHA7 }}
+      SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +86,9 @@ jobs:
             winslow*.jar
 
   html-build:
-    needs: create-variables
+    needs: variables
+    env:
+      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -136,13 +142,16 @@ jobs:
 
   build-image-and-smoke-test:
     runs-on: ubuntu-latest
-    env:
-      IMAGE_HTML: component-html
-      IMAGE_SERVER: component-server
     needs:
+      - variables
       - server-test
       - server-build
       - html-build
+    env:
+      IMAGE_HTML: component-html
+      IMAGE_SERVER: component-server
+      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
+      IMAGE_WINSLOW: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
     steps:
       - uses: actions/checkout@v4
 
@@ -166,26 +175,26 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_HTML
 
-      - name: Build winslow:${{ github.ref_name }}
+      - name: Build $IMAGE_WINSLOW
         run: |
           cd node
-          docker build . -t winslow:$GITHUB_REF_NAME --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker build . -t $IMAGE_WINSLOW --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
-      - name: Prepare upload of winslow:${{ github.ref_name }} image to github
+      - name: Prepare upload of $IMAGE_WINSLOW image to github
         run: |
-          docker save winslow:$GITHUB_REF_NAME -o winslow-$GITHUB_REF_NAME.tar
-      - name: Upload winslow-${{ github.ref_name }} image to github
+          docker save $IMAGE_WINSLOW -o $IMAGE_WINSLOW_ARTIFACT.tar
+      - name: Upload $IMAGE_WINSLOW image to github
         uses: actions/upload-artifact@v4
         with:
           retention-days: 1
           compression-level: 9
-          name: winslow-${{ github.ref_name }}-${{ github.run_id }}
+          name: $WINSLOW_IMAGE_ARTIFACT
           path: |
             winslow-*.tar
 
-      - name: Smoke test winslow:${{ github.ref_name }}
+      - name: Smoke test $IMAGE_WINSLOW
         run: |
-          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock winslow:$GITHUB_REF_NAME
+          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW
           success=false
           for i in {1..20}; do
             echo "Attempt $i: Checking if application is up..."
@@ -230,25 +239,31 @@ jobs:
     if: needs.publish-validator.outputs.TAG != ''
     needs:
       - publish-validator
+      - variables
     env:
       TAG: ${{ needs.publish-validator.outputs.TAG }}
-      IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
+      WINSLOW_REGISTRY: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
+      APPENDIX: ${{ needs.variables.outputs.APPENDIX }}
+      WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
+      WINSLOW_IMAGE_RELEASE: $WINSLOW_REGISTRY:$TAG
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download winslow:${{ github.ref_name }}-${{ github.run_id }}
+      - name: Download ${{ env.WINSLOW_IMAGE_ARTIFACT }}
         uses: actions/download-artifact@v4
         with:
-          name: winslow-${{ github.ref_name }}-${{ github.run_id }}
+          name: $WINSLOW_IMAGE_ARTIFACT
           path: .
 
-      - name: Import winslow:${{ github.ref_name }} image
+      - name: Import $WINSLOW_IMAGE
         run: |
-          docker import winslow-$GITHUB_REF_NAME.tar
+          docker import $WINSLOW_IMAGE_ARTIFACT.tar
 
       - name: Tag image for release on Dockerhub
         run: |
-          docker tag winslow:$GITHUB_REF_NAME $IMAGE_WINSLOW:$TAG
+          docker tag $WINSLOW_IMAGE $WINSLOW_IMAGE_RELEASE
 
       - name: Dockerhub login
         env:
@@ -257,14 +272,14 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Push winslow:${{ env.TAG }} to Dockerhub
+      - name: Push  to Dockerhub
         run: |
-          docker push $IMAGE_WINSLOW:$TAG
+          docker push $WINSLOW_IMAGE_RELEASE
 
       - name: Update Dockerhub description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-          repository: itdesigners1/winslow
+          repository: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
           readme-filepath: ./node/README.md
