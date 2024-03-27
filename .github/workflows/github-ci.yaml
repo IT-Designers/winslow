@@ -248,7 +248,6 @@ jobs:
       WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
       APPENDIX: ${{ needs.variables.outputs.APPENDIX }}
       WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
-      WINSLOW_IMAGE_RELEASE: $WINSLOW_REGISTRY:$TAG
 
     steps:
       - uses: actions/checkout@v4
@@ -265,7 +264,7 @@ jobs:
 
       - name: Tag image for release on Dockerhub
         run: |
-          docker tag $WINSLOW_IMAGE $WINSLOW_IMAGE_RELEASE
+          docker tag $WINSLOW_IMAGE $WINSLOW_REGISTRY:$TAG
 
       - name: Dockerhub login
         env:
@@ -276,7 +275,7 @@ jobs:
 
       - name: Push winslow image release to dockerhub
         run: |
-          docker push $WINSLOW_IMAGE_RELEASE
+          docker push $WINSLOW_REGISTRY:$TAG
 
       - name: Update Dockerhub description
         uses: peter-evans/dockerhub-description@v4
