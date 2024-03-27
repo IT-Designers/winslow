@@ -260,11 +260,7 @@ jobs:
 
       - name: Import winslow image from smoke test for release
         run: |
-          docker import $WINSLOW_IMAGE_ARTIFACT.tar
-
-      - name: Tag image for release on Dockerhub
-        run: |
-          docker tag $WINSLOW_IMAGE $WINSLOW_REGISTRY:$TAG
+          docker import $WINSLOW_IMAGE_ARTIFACT.tar $WINSLOW_REGISTRY:$TAG
 
       - name: Dockerhub login
         env:
