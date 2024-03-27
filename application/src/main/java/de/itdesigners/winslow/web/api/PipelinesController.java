@@ -281,7 +281,7 @@ public class PipelinesController {
                                     "Automatically generated description for '" + name + "'",
                                     new UserInput(
                                             UserInput.Confirmation.ONCE,
-                                            List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
+                                            null //List.of("SOME", "ENV_VARS", "THAT_MUST_BE_SET")
                                     ),
                                     List.of(new StageWorkerDefinition(
                                             id0,

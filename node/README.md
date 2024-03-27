@@ -22,4 +22,4 @@ Further documentation can be found on [GitHub](https://github.com/IT-Designers/w
 There are following tags available:
 - `20xx.x` - The release version of Winslow, which matches the corresponding git **tag** `20xx.x`
 - `20xx.x-dev` - The current state of the corresponding git **branch** `20xx.x`
-- `dev` - The current state of git master branch
+- `latest` - The current state of git master branch
