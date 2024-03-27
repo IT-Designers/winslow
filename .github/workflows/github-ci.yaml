@@ -213,10 +213,10 @@ jobs:
       - name: Download winslow:${{ github.ref_name }}-${{ github.run_id }}
         uses: actions/download-artifact@v4
         with:
-          name: winslow-${{ GITHUB_REF_NAME }}-${{ github.run_id }}
+          name: winslow-${{ github.ref_name }}-${{ github.run_id }}
           path: .
 
-      - name: Import winslow:${{ GITHUB_REF_NAME }} image
+      - name: Import winslow:${{ github.ref_name }} image
         run: |
           docker import winslow-$GITHUB_REF_NAME.tar
 
