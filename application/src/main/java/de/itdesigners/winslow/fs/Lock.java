@@ -5,7 +5,6 @@ import de.itdesigners.winslow.ProperlyClosedDebugHelper;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Lock implements AutoCloseable, Closeable {

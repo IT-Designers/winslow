@@ -199,7 +199,7 @@ public class Executor implements Closeable, AutoCloseable {
         try (lockHeart) {
             try (logOutput) {
                 var iter    = getLogIterator();
-                var backoff = new Backoff(250, 950, 2f);
+                var backoff = new Backoff(250, 950, 2f, new JavaThreadSleepWrapper());
 
                 LogWriter
                         .writeTo(logOutput)

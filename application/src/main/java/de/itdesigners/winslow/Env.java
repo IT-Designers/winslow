@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public class Env {
 
+    private static final String NO_AUTH_API_PATH = "/api/v1/noauth/";
+
     public static final int LOCK_DURATION_MIN_MS     = 10 * 1_000; // 10s
     public static final int LOCK_DURATION_DEFAULT_MS = 5 * 60 * 1_000; // 5min
     public static final int LOCK_DURATION_LOGS_MS    = LOCK_DURATION_DEFAULT_MS;
@@ -30,13 +32,10 @@ public class Env {
     public static final String WEB_REQUIRE_SECURE = SELF_PREFIX + "_WEB_REQUIRE_SECURE";
     public static final String LOCK_DURATION_MS   = SELF_PREFIX + "_LOCK_DURATION_MS";
 
+    /**
+     * This variable is resolved in the SecurityConfig from SpringBoot don't to this, the winslow way is to use {@link Env}
+     */
     public static final String LDAP_URL = SELF_PREFIX + "_LDAP_URL";
-    // public static final String LDAP_MANAGER_DN          = SELF_PREFIX + "_LDAP_MANAGER_DN";
-    // public static final String LDAP_MANAGER_PASSWORD    = SELF_PREFIX + "_LDAP_MANAGER_PASSWORD";
-    // public static final String LDAP_USER_SEARCH_BASE    = SELF_PREFIX + "_LDAP_USER_SEARCH_FILTER";
-    // public static final String LDAP_USER_SEARCH_FILTER  = SELF_PREFIX + "_LDAP_USER_SEARCH_FILTER";
-    // public static final String LDAP_GROUP_SEARCH_BASE   = SELF_PREFIX + "_LDAP_GROUP_SEARCH_FILTER";
-    // public static final String LDAP_GROUP_SEARCH_FILTER = SELF_PREFIX + "_LDAP_GROUP_SEARCH_FILTER";
 
     public static final String ROOT_USERS = SELF_PREFIX + "_ROOT_USERS";
 
@@ -82,7 +81,7 @@ public class Env {
 
     @Nonnull
     public static String getApiNoAuthPath() {
-        return System.getenv().getOrDefault(API_PATH, "/api/v1/noauth/");
+        return NO_AUTH_API_PATH;
     }
 
     @Nonnull
@@ -103,6 +102,7 @@ public class Env {
     }
 
     public static boolean requireSecure() {
+        // TODO: is this still valid with SECURITY_REQUIRE_SSL?
         // 'SECURITY_REQUIRE_SSL' is an old and deprecated springboot property but might be used here and there
         return isTrueOr1(System.getenv("SECURITY_REQUIRE_SSL")) || isTrueOr1(System.getenv(WEB_REQUIRE_SECURE));
     }

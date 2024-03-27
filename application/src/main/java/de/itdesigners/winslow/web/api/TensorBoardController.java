@@ -1,9 +1,6 @@
 package de.itdesigners.winslow.web.api;
 
-import de.itdesigners.winslow.Backoff;
-import de.itdesigners.winslow.Env;
-import de.itdesigners.winslow.StageHandle;
-import de.itdesigners.winslow.Winslow;
+import de.itdesigners.winslow.*;
 import de.itdesigners.winslow.auth.User;
 import de.itdesigners.winslow.config.ExecutionGroup;
 import de.itdesigners.winslow.config.Requirements;
@@ -214,7 +211,7 @@ public class TensorBoardController {
 
                 var thread = new Thread(() -> {
                     try {
-                        var backoff  = new Backoff(250, 950, 2f);
+                        var backoff  = new Backoff(250, 950, 2f, new JavaThreadSleepWrapper());
                         var iterator = handle.getLogs();
                         while (iterator.hasNext()) {
                             var entry = iterator.next();

@@ -6,7 +6,6 @@ import de.itdesigners.winslow.fs.LockBus;
 import de.itdesigners.winslow.fs.LockException;
 import de.itdesigners.winslow.fs.LockedOutputStream;
 import de.itdesigners.winslow.fs.WorkDirectoryConfiguration;
-import de.itdesigners.winslow.pipeline.StageId;
 
 import javax.annotation.Nonnull;
 import java.io.FileInputStream;
