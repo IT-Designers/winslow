@@ -152,7 +152,7 @@ jobs:
       HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
       IMAGE_HTML: component-html
       IMAGE_SERVER: component-server
-      IMAGE_WINSLOW: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
+      WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
       WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
     steps:
       - uses: actions/checkout@v4
@@ -180,11 +180,11 @@ jobs:
       - name: Build winslow image
         run: |
           cd node
-          docker build . -t $IMAGE_WINSLOW --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker build . -t $WINSLOW_IMAGE --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
       - name: Prepare upload of winslow image to github
         run: |
-          docker save $IMAGE_WINSLOW -o $WINSLOW_IMAGE_ARTIFACT.tar
+          docker save $WINSLOW_IMAGE -o $WINSLOW_IMAGE_ARTIFACT.tar
       - name: Upload winslow image to github
         uses: actions/upload-artifact@v4
         with:
@@ -196,7 +196,7 @@ jobs:
 
       - name: Smoke test winslow
         run: |
-          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW
+          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $WINSLOW_IMAGE
           success=false
           for i in {1..20}; do
             echo "Attempt $i: Checking if application is up..."
