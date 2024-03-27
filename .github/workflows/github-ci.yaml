@@ -18,7 +18,7 @@ jobs:
         id: variables
         run: |
           GITHUB_SHA7=$(git rev-parse --short=7 ${{ github.sha }})
-          APPENDIX=${{ github.ref_name }}-$GITHUB_SHA7-${{ github.run_id }}
+          APPENDIX=branch-${{ github.ref_name }}-commit-$GITHUB_SHA7-job-${{ github.run_id }}
           echo "GITHUB_SHA7=$GITHUB_SHA7" >> $GITHUB_OUTPUT
           echo "APPENDIX=$APPENDIX" >> $GITHUB_OUTPUT
           echo "SERVER_ARTIFACT=jar-$APPENDIX" >> $GITHUB_OUTPUT
@@ -35,8 +35,8 @@ jobs:
 
 
   server-test:
-    needs: variables
     runs-on: ubuntu-latest
+    needs: variables
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -49,11 +49,11 @@ jobs:
           mvn test
 
   server-build:
+    runs-on: ubuntu-latest
     needs: variables
     env:
       GITHUB_SHA7: ${{ needs.variables.outputs.GITHUB_SHA7 }}
       SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -81,15 +81,15 @@ jobs:
         with:
           retention-days: 1
           compression-level: 9
-          name: ${{ env.SERVER_ARTIFACT }}
+          name: $SERVER_ARTIFACT
           path: |
             winslow*.jar
 
   html-build:
+    runs-on: ubuntu-latest
     needs: variables
     env:
       HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -148,9 +148,10 @@ jobs:
       - server-build
       - html-build
     env:
+      SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
+      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
       IMAGE_HTML: component-html
       IMAGE_SERVER: component-server
-      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
       IMAGE_WINSLOW: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
     steps:
       - uses: actions/checkout@v4
@@ -158,7 +159,7 @@ jobs:
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.SERVER_ARTIFACT }}
+          name: $SERVER_ARTIFACT
           path: .
       - name: Build backend image
         run: |
@@ -167,7 +168,7 @@ jobs:
       - name: Download frontend
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.HTML_ARTIFACT }}
+          name: $HTML_ARTIFACT
           path: ./winslow-ui-ng
       - name: Build frontend image
         run: |
@@ -175,15 +176,15 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_HTML
 
-      - name: Build $IMAGE_WINSLOW
+      - name: Build winslow image
         run: |
           cd node
           docker build . -t $IMAGE_WINSLOW --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
-      - name: Prepare upload of $IMAGE_WINSLOW image to github
+      - name: Prepare upload of winslow image to github
         run: |
           docker save $IMAGE_WINSLOW -o $IMAGE_WINSLOW_ARTIFACT.tar
-      - name: Upload $IMAGE_WINSLOW image to github
+      - name: Upload winslow image to github
         uses: actions/upload-artifact@v4
         with:
           retention-days: 1
@@ -192,7 +193,7 @@ jobs:
           path: |
             winslow-*.tar
 
-      - name: Smoke test $IMAGE_WINSLOW
+      - name: Smoke test winslow
         run: |
           docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW
           success=false
@@ -251,13 +252,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download ${{ env.WINSLOW_IMAGE_ARTIFACT }}
+      - name: Download winslow image artifact from github
         uses: actions/download-artifact@v4
         with:
           name: $WINSLOW_IMAGE_ARTIFACT
           path: .
 
-      - name: Import $WINSLOW_IMAGE
+      - name: Import winslow image from smoke test for release
         run: |
           docker import $WINSLOW_IMAGE_ARTIFACT.tar
 
@@ -272,7 +273,7 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Push  to Dockerhub
+      - name: Push winslow image release to dockerhub
         run: |
           docker push $WINSLOW_IMAGE_RELEASE
 
