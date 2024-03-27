@@ -150,8 +150,8 @@ jobs:
     env:
       SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
       HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
-      IMAGE_HTML: component-html
-      IMAGE_SERVER: component-server
+      HTML_IMAGE: component-html
+      SERVER_IMAGE: component-server
       WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
       WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
     steps:
@@ -164,7 +164,7 @@ jobs:
           path: .
       - name: Build backend image
         run: |
-          docker build . -t $IMAGE_SERVER
+          docker build . -t $SERVER_IMAGE
 
       - name: Download frontend
         uses: actions/download-artifact@v4
@@ -175,12 +175,12 @@ jobs:
         run: |
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
-          docker build . -t $IMAGE_HTML
+          docker build . -t $HTML_IMAGE
 
       - name: Build winslow image
         run: |
           cd node
-          docker build . -t $WINSLOW_IMAGE --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker build . -t $WINSLOW_IMAGE --build-arg COMPONENT_HTML=$HTML_IMAGE --build-arg COMPONENT_SERVER=$SERVER_IMAGE
 
       - name: Prepare upload of winslow image to github
         run: |
@@ -227,7 +227,7 @@ jobs:
         id: determine_tag
         run: |
           if [[ "$GITHUB_REF_NAME" == "master" ]]; then
-            TAG=dev
+            TAG=latest
           elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
             TAG=${GITHUB_REF_NAME}
           elif [[ "$GITHUB_REF_TYPE" == "branch" && "$GITHUB_REF_NAME" =~ ^20[0-9]{2}\.[0-9]+$ ]]; then
