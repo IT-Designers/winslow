@@ -1,17 +1,48 @@
+# Winslow <img src="docs/images/winslow_friendly_flipped.png" alt="winslow log" width="80">
+
 [![CI/CD Pipeline](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml/badge.svg)](https://github.com/IT-Designers/winslow/actions/workflows/github-ci.yaml)
-# Winslow 
+[![Wiki](https://img.shields.io/badge/Wiki-Read%20More-blue)](https://github.com/IT-Designers/winslow/wiki)
+[![Docker Pulls](https://img.shields.io/docker/pulls/itdesigners1/winslow?logo=docker)](https://hub.docker.com/r/itdesigners1/winslow)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](https://github.com/IT-Designers/winslow/blob/253-create-github-wiki-page/LICENSE)
+
+Winslow is a distributed and automated pipeline management system initially designed for traffic flow analysis through computer vision.
+It is focused on easy deployment for small to medium-sized environments with minimum administrative overhead.
+The current development is primarily driven by its original purpose.
+However, the design makes it usable for a wide range of applications, which needs data processing, machine learning, and more.
+See the System Architecture below for a high-level overview.
+![architecture.png](docs/images/architecture.png)
+
+## Quick Overview
+* How to Start
+    * [Start from Docker](README.md#Starting-with-Docker)
+    * [Start from Source](README.md#Starting-from-Source)
+    * [Start from IDE](README.md#Setup-Local-Development)
+* A User Guide and Technical Documentation is available in the [wiki](https://github.com/IT-Designers/winslow/wiki)
 
 ## Prerequisite
-This Project is designed to be used for a _Linux Environment_. <br>
-:warning: It is not tested for a Windows Environment. :warning:
+### Supported Operating Systems
+| Windows                                                                                                                                                                                    | Ubuntu                                                                                                                                                                                              | Other Linux                                                                                                                                                                                                | Mac                                                                                                                                                                                       |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ![:no_entry:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmxwaW5vY3oyYnkwM3oxNWEwMXU0NXB6ZHMzMWJsYm1ycm11NDZodSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hv5AEBpH3ZyNoRnABG/giphy.gif) | ![:white_check_mark:](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExazgxOGtwbHQzaXM1aDIwNjR0Yjhpbmhrb2UzN2h1bDk1eDcycGpxbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhweiVB36rAlqVCE/giphy.gif) | ![should work but not tested](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZm5nYXQxcDd5b2NrcHJqbDFteGYydW92eGd4M3RlZXozd2kxM2c3cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l2YWqRKqE6xOG5qSc/giphy.gif) | ![Alt Text](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXVwaWt6OTNyN2Z3eTU0NHoxN3dwbHRoN3pnZzJjMnh1OTBmbDA1OCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o84sIqsVAJNfWyjy8/giphy.gif) |
+| not supported :no_entry:                                                                                                                                                                   | supported :white_check_mark:                                                                                                                                                                        | not tested :question:                                                                                                                                                                           | not supported :no_entry:                                                                                                                                                                  |
+
 
 ### Software dependencies
+#### Running
 * Docker
+
+#### Building & Running from Source
 * Java 17
 * Maven 3.6.3
 * Angular 17
 * Node 18.13.0
 * npm 8.19.3
+
+### Minimum Hardware Requirements
+* 2GB RAM
+* 2 vCPU
+* 10GB Storage
+* NVIDIA GPU (optional)
 
 ## Starting with Docker
 See [Winslow Docker Image](node/README.md#Winslow-Docker-Image) for more information.
@@ -22,9 +53,9 @@ This is a universal step-by-step approach, the **commands and directories are de
 1. Create a workdir, for example in the project root:
     * `cd winslow && mkdir workdir`
 * run the project 
-  * **without** an IDE then goto [Run locally](README.md#run-locally)
+  * **without** an IDE then goto [Run in terminal](README.md#run-in-terminal)
   * **with** an IDE then goto [Run with IDE](README.md#setup-local-development)
-## Run locally
+## Run in terminal
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 1. Build & Start the Frontend:
    * `(cd ui-ng && npm install && npm run build && npm run start)`
@@ -51,88 +82,36 @@ This is a universal step-by-step approach, the **commands and directories are de
 
 ## Setup Local Development
 Currently only [intellij setup](README.md#intellij-setup) is documented, feel free to add documentation for other environments. <br>
-If you encounter a problem, see the [troubleshooting](README.md#troubleshooting) section.
 <br>
 **Important:** Do the steps from [How to Start](README.md#how-to-start) first and then come back.
 ### Intellij SetUp
 > [!NOTE]
-> Read this step in the markdown preview of Intellij to finish the setup.
+> Read this step in the markdown preview of IntelliJ to finish the setup.
 #### Project Configuration
 * Open settings and select a compatible node and npm version as mentioned in [Prerequisite](README.md#software-dependencies)
 
-![node_npm_version.png](docu/img/node_npm_version.png)
+![node_npm_version.png](docs/images/node_npm_version.png)
 
 #### Start Backend
 Click here to start backend: `winslow-application`
 <br>
-(There is also a visual guide to configure the backend: [Visual Guide](docu/visual_guide.md#configure-backend))
+(There is also a visual guide to configure the backend: [Visual Guide](docs/visual_guide.md#configure-backend))
 
 #### Start Frontend
 Click here to start frontend: `start fe`
 
-## More Information
-### Environment Variables
-#### required
-* `WINSLOW_WORK_DIRECTORY` Absolut path to the working directory that has to be on a nfs
-  * Example `/winslow/workdirectory/that/is/on/nfs`
-#### optional
-* `WINSLOW_NO_STAGE_EXECUTION` stage execution, act as observer / web-accessor
-  * `Values`
-    * `1` disable 
-    * `0` enable stage execution, act as observer / web-accessor
-
-* `WINSLOW_DEV_ENV` auth and allows root access to all resources
-  * `Values`
-    * `true` disables
-    * `false` enables
-
-* `WINSLOW_DEV_REMOTE_USER` username to assign to (unauthorized) requests
-
-* `WINSLOW_DEV_ENV_IP` publicly visible IP of the WEB-UI
-  * Example:  192.168.1.178
-
-* `WINSLOW_NO_GPU_USAGE` access to GPUs
-  * `Values`
-    * `0` disables
-    * `1` enables
-
-* `WINSLOW_NO_WEB_API` REST/WebSocket-API (no longer starts Spring Boot)
-  * `Values`
-    * `1` disable 
-    * `0` enables
-* `WINSLOW_ROOT_USERS` users with root access
-
-#### NFS-Server WHAT ABOUT THIS?
-Install `nfs-kernel-server`: `sudo apt install nfs-kernel-server` and update `/etc/export`:
-
-```nfs
-/path/to/nfs-export *(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=1,anonuid=0,anongid=0)
-/path/to/nfs-export/run *(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0) 172.0.0.0/8(rw,no_root_squash,all_squash,fsid=2,anonuid=0,anongid=0)
-
-```
-
-
-Add to `/etc/fstab` an entry to mount the nfs directory
-
-```fstab
-<your-pc-name>:/path/to/nfs-export /home/<username>/path/to/nfs-mount nfs noauto 0 0
-
-# winslow/run store very small temporary files, making it a tmpfs makes it faster (ram-fs)
-tmpfs /path/to/nfs-export/run tmpfs size=1G,mode=760,noauto 0 0
-```
-
-
-Run the following script (`./start-nfs-server.sh`):
-
-```bash
-#!/bin/bash
-
-sudo mount nfs-export/run
-sudo service nfs-kernel-server restart
-sleep 5
-sudo mount nfs-mount
-```
-
 ## Troubleshooting
 ### 1. The documentation said _click here_ but there is nothing to click?
 * Make sure you are reading this in the markdown preview from Intellij
+
+## Origin
+<sub>
+Winslow was originally created as part of the <a href="https://github.com/kellerkindt/master-thesis/blob/master/main.pdf">thesis</a> in 2019/2020 at IT-Designers GmbH (https://www.it-designers.de).
+</sub>
+
+
+## License
+<sup>
+Licensed under <a href="LICENSE">MIT license</a>.
+</sup>
+<br>

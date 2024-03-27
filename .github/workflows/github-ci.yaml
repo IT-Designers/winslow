@@ -1,7 +1,4 @@
 name: CI/CD Pipeline
-env:
-  IMAGE_HTML: component-html
-  IMAGE_SERVER: component-server
 on:
   push:
     branches:
@@ -13,8 +10,33 @@ on:
       - '**'
 
 jobs:
-  test-component-server:
+  variables:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: set variables
+        id: variables
+        run: |
+          GITHUB_SHA7=$(git rev-parse --short=7 ${{ github.sha }})
+          APPENDIX=branch-${{ github.ref_name }}-commit-$GITHUB_SHA7-job-${{ github.run_id }}
+          echo "GITHUB_SHA7=$GITHUB_SHA7" >> $GITHUB_OUTPUT
+          echo "APPENDIX=$APPENDIX" >> $GITHUB_OUTPUT
+          echo "SERVER_ARTIFACT=jar-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "HTML_ARTIFACT=html-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "WINSLOW_IMAGE_ARTIFACT=winslow-$APPENDIX" >> $GITHUB_OUTPUT
+          echo "WINSLOW_IMAGE=winslow:$APPENDIX" >> $GITHUB_OUTPUT
+    outputs:
+      GITHUB_SHA7: ${{ steps.variables.outputs.GITHUB_SHA7 }}
+      APPENDIX: ${{ steps.variables.outputs.APPENDIX }}
+      SERVER_ARTIFACT: ${{ steps.variables.outputs.SERVER_ARTIFACT }}
+      HTML_ARTIFACT: ${{ steps.variables.outputs.HTML_ARTIFACT }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ steps.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
+      WINSLOW_IMAGE: ${{ steps.variables.outputs.WINSLOW_IMAGE }}
+
+
+  server-test:
+    runs-on: ubuntu-latest
+    needs: variables
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -26,8 +48,12 @@ jobs:
         run: |
           mvn test
 
-  build-component-server:
+  server-build:
     runs-on: ubuntu-latest
+    needs: variables
+    env:
+      GITHUB_SHA7: ${{ needs.variables.outputs.GITHUB_SHA7 }}
+      SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -38,13 +64,14 @@ jobs:
       - name: Setup 'Build.java' information
         run: |
           export COMMIT_HASH_LONG=${{ github.sha }}
-          export COMMIT_HASH_SHORT=$(git rev-parse --short=7 ${{ github.sha }})
+          export COMMIT_HASH_SHORT=${{ env.GITHUB_SHA7 }}
           sed -i "s/external__BUILD_DATE/$(date '+%Y-%m-%d %H:%M:%S')/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_LONG/${{ github.sha }}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
           sed -i "s/external__COMMIT_HASH_SHORT/$COMMIT_HASH_SHORT}/g" api/src/main/java/de/itdesigners/winslow/api/Build.java
       - name: Build
         run: |
           mvn package -DskipTests
+
       - name: Prepare upload jar files
         run: |
           cp application/target/winslow*.jar .
@@ -54,12 +81,15 @@ jobs:
         with:
           retention-days: 1
           compression-level: 9
-          name: jar-files-${{ github.run_id }}
+          name: ${{ env.SERVER_ARTIFACT }}
           path: |
             winslow*.jar
 
-  build-component-html:
+  html-build:
     runs-on: ubuntu-latest
+    needs: variables
+    env:
+      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -71,7 +101,6 @@ jobs:
         run: |
           cd api
           mvn compile typescript-generator:generate
-          cd ..
       - name: copy winslow-api.ts to ui-ng
         run: |
           cp api/target/typescript-generator/winslow-api.ts ui-ng/src/app/api/winslow-api.ts
@@ -98,6 +127,7 @@ jobs:
         run: |
           cd ui-ng
           npm run build --omit=dev --baseHref=/ --deployUrl=/
+
       - name: Prepare upload
         run: |
           cd ui-ng
@@ -107,72 +137,66 @@ jobs:
         with:
           retention-days: 1
           compression-level: 9
-          name: winslow-ui-ng_${{ github.run_id }}
+          name: ${{ env.HTML_ARTIFACT }}
           path: winslow-ui-ng
 
-  publish-validator:
+  build-image-and-smoke-test:
     runs-on: ubuntu-latest
     needs:
-      - test-component-server
-      - build-component-server
-      - build-component-html
-    outputs:
-      TAG: ${{ steps.determine_tag.outputs.TAG }}
-    steps:
-      - name: Determine image tag
-        id: determine_tag
-        run: |
-          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
-            TAG=dev
-          elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            TAG=${GITHUB_REF_NAME}
-          elif [[ "$GITHUB_REF_TYPE" == "branch" && "$GITHUB_REF_NAME" =~ ^20[0-9]{2}\.[0-9]+$ ]]; then
-            TAG=${GITHUB_REF_NAME}-dev
-          fi 
-          echo $TAG
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-
-  publish-winslow-image:
-    runs-on: ubuntu-latest
-    if: needs.publish-validator.outputs.TAG != ''
-    needs:
-      - publish-validator
+      - variables
+      - server-test
+      - server-build
+      - html-build
     env:
-      TAG: ${{ needs.publish-validator.outputs.TAG }}
-      IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
+      SERVER_ARTIFACT: ${{ needs.variables.outputs.SERVER_ARTIFACT }}
+      HTML_ARTIFACT: ${{ needs.variables.outputs.HTML_ARTIFACT }}
+      HTML_IMAGE: component-html
+      SERVER_IMAGE: component-server
+      WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
-          name: jar-files-${{ github.run_id }}
+          name: ${{ env.SERVER_ARTIFACT }}
           path: .
       - name: Build backend image
         run: |
-          docker build . -t $IMAGE_SERVER
+          docker build . -t $SERVER_IMAGE
 
       - name: Download frontend
         uses: actions/download-artifact@v4
         with:
-          name: winslow-ui-ng_${{ github.run_id }}
+          name: ${{ env.HTML_ARTIFACT }}
           path: ./winslow-ui-ng
       - name: Build frontend image
         run: |
           mv winslow-ui-ng ui-ng/winslow-ui-ng
           cd ui-ng
-          docker build . -t $IMAGE_HTML
+          docker build . -t $HTML_IMAGE
 
-      - name: Build winslow:${{ env.TAG }}
+      - name: Build winslow image
         run: |
           cd node
-          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker build . -t $WINSLOW_IMAGE --build-arg COMPONENT_HTML=$HTML_IMAGE --build-arg COMPONENT_SERVER=$SERVER_IMAGE
 
-      - name: Start winslow:${{ env.TAG }}
+      - name: Prepare upload of winslow image to github
         run: |
-          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW:$TAG
+          docker save $WINSLOW_IMAGE -o $WINSLOW_IMAGE_ARTIFACT.tar
+      - name: Upload winslow image to github
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          compression-level: 9
+          name: ${{ env.WINSLOW_IMAGE_ARTIFACT }}
+          path: |
+            winslow-*.tar
 
-      - name: Smoke test winslow:${{ env.TAG }}
+      - name: Smoke test winslow
         run: |
+          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $WINSLOW_IMAGE
           success=false
           for i in {1..20}; do
             echo "Attempt $i: Checking if application is up..."
@@ -188,8 +212,55 @@ jobs:
           
             if [[ "$success" == false ]]; then
               echo "Failed to connect to application or 'example' was not found after $i tries."
+              echo "Smoke test failed."
               exit 1
             fi
+
+  publish-validator:
+    runs-on: ubuntu-latest
+    needs:
+      - build-image-and-smoke-test
+    outputs:
+      TAG: ${{ steps.determine_tag.outputs.TAG }}
+    steps:
+      - name: Determine image tag
+        id: determine_tag
+        run: |
+          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+            TAG=latest
+          elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            TAG=${GITHUB_REF_NAME}
+          elif [[ "$GITHUB_REF_TYPE" == "branch" && "$GITHUB_REF_NAME" =~ ^20[0-9]{2}\.[0-9]+$ ]]; then
+            TAG=${GITHUB_REF_NAME}-dev
+          fi 
+          echo $TAG
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
+  publish-winslow-image:
+    runs-on: ubuntu-latest
+    if: needs.publish-validator.outputs.TAG != ''
+    needs:
+      - publish-validator
+      - variables
+    env:
+      TAG: ${{ needs.publish-validator.outputs.TAG }}
+      WINSLOW_REGISTRY: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
+      APPENDIX: ${{ needs.variables.outputs.APPENDIX }}
+      WINSLOW_IMAGE: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download winslow image artifact from github
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WINSLOW_IMAGE_ARTIFACT }}
+          path: .
+
+      - name: Import winslow image from smoke test for release
+        run: |
+          docker import $WINSLOW_IMAGE_ARTIFACT.tar $WINSLOW_REGISTRY:$TAG
 
       - name: Dockerhub login
         env:
@@ -198,14 +269,14 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
 
-      - name: Push winslow:${{ env.TAG }}
+      - name: Push winslow image release to dockerhub
         run: |
-          docker push $IMAGE_WINSLOW:$TAG
+          docker push $WINSLOW_REGISTRY:$TAG
 
       - name: Update Dockerhub description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_REGISTRY_WINSLOW_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_WINSLOW_PASSWORD }}
-          repository: itdesigners1/winslow
+          repository: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
           readme-filepath: ./node/README.md
