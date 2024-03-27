@@ -184,7 +184,7 @@ jobs:
 
       - name: Prepare upload of winslow image to github
         run: |
-          docker save $IMAGE_WINSLOW -o $IMAGE_WINSLOW_ARTIFACT.tar
+          docker save $IMAGE_WINSLOW -o $WINSLOW_IMAGE_ARTIFACT.tar
       - name: Upload winslow image to github
         uses: actions/upload-artifact@v4
         with:
@@ -256,7 +256,7 @@ jobs:
       - name: Download winslow image artifact from github
         uses: actions/download-artifact@v4
         with:
-          name: $WINSLOW_IMAGE_ARTIFACT
+          name: ${{ env.WINSLOW_IMAGE_ARTIFACT }}
           path: .
 
       - name: Import winslow image from smoke test for release
