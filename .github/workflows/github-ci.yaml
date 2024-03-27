@@ -153,13 +153,14 @@ jobs:
       IMAGE_HTML: component-html
       IMAGE_SERVER: component-server
       IMAGE_WINSLOW: ${{ needs.variables.outputs.WINSLOW_IMAGE }}
+      WINSLOW_IMAGE_ARTIFACT: ${{ needs.variables.outputs.WINSLOW_IMAGE_ARTIFACT }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
-          name: $SERVER_ARTIFACT
+          name: ${{ env.SERVER_ARTIFACT }}
           path: .
       - name: Build backend image
         run: |
@@ -168,7 +169,7 @@ jobs:
       - name: Download frontend
         uses: actions/download-artifact@v4
         with:
-          name: $HTML_ARTIFACT
+          name: ${{ env.HTML_ARTIFACT }}
           path: ./winslow-ui-ng
       - name: Build frontend image
         run: |
@@ -189,7 +190,7 @@ jobs:
         with:
           retention-days: 1
           compression-level: 9
-          name: $WINSLOW_IMAGE_ARTIFACT
+          name: ${{ env.WINSLOW_IMAGE_ARTIFACT }}
           path: |
             winslow-*.tar
 
