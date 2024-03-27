@@ -81,7 +81,7 @@ jobs:
         with:
           retention-days: 1
           compression-level: 9
-          name: $SERVER_ARTIFACT
+          name: ${{ env.SERVER_ARTIFACT }}
           path: |
             winslow*.jar
 
