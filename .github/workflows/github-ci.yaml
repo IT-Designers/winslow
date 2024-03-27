@@ -45,6 +45,11 @@ jobs:
       - name: Build
         run: |
           mvn package -DskipTests
+
+      - name: Prepare upload jar files
+        run: |
+          cp application/target/winslow*.jar .
+          cp api/target/winslow*.jar .
       - name: Upload jar files
         uses: actions/upload-artifact@v4
         with:
@@ -52,8 +57,7 @@ jobs:
           compression-level: 9
           name: jar-files-${{ github.run_id }}
           path: |
-            application/target/winslow*.jar
-            api/target/winslow*.jar
+            winslow*.jar
 
   html-build:
     runs-on: ubuntu-latest
@@ -94,14 +98,18 @@ jobs:
         run: |
           cd ui-ng
           npm run build --omit=dev --baseHref=/ --deployUrl=/
+
+      - name: Prepare upload
+        run: |
+          cd ui-ng
+          mv dist/winslow-ui-ng ../winslow-ui-ng
       - name: Upload winslow-ui-ng
         uses: actions/upload-artifact@v4
         with:
           retention-days: 1
           compression-level: 9
           name: winslow-ui-ng_${{ github.run_id }}
-          path:
-            ui-ng/dist/winslow-ui-ng
+          path: winslow-ui-ng
 
   publish-validator:
     runs-on: ubuntu-latest
