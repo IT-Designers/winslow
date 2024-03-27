@@ -2,8 +2,6 @@ name: CI/CD Pipeline
 env:
   IMAGE_HTML: component-html
   IMAGE_SERVER: component-server
-  IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
-  TAG: ""
 on:
   push:
     branches:
@@ -113,7 +111,7 @@ jobs:
           name: winslow-ui-ng_${{ github.run_id }}
           path: winslow-ui-ng
 
-  smoke-test:
+  build-winslow-image-and-smoke-test:
     runs-on: ubuntu-latest
     needs:
       - server-test
@@ -121,6 +119,7 @@ jobs:
       - html-build
     steps:
       - uses: actions/checkout@v4
+
       - name: Download backend
         uses: actions/download-artifact@v4
         with:
@@ -141,30 +140,26 @@ jobs:
           cd ui-ng
           docker build . -t $IMAGE_HTML
 
-      - name: Set winslow image tag
-        run: |
-          echo "TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
-
-      - name: Build winslow:${{ env.TAG }}
+      - name: Build winslow:$GITHUB_REF_NAME
         run: |
           cd node
-          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
+          docker build . -t winslow:$GITHUB_REF_NAME --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
 
-      - name: Prepare upload of winslow:${{ env.TAG }} image to github
+      - name: Prepare upload of winslow:$GITHUB_REF_NAME image to github
         run: |
-          docker save $IMAGE_WINSLOW:$TAG -o WINSLOW-${TAG}.tar
-      - name: Upload winslow:${{ env.TAG }} image to github
+          docker save winslow:$GITHUB_REF_NAME -o winslow:$GITHUB_REF_NAME.tar
+      - name: Upload winslow:$GITHUB_REF_NAME image to github
         uses: actions/upload-artifact@v4
         with:
           retention-days: 1
           compression-level: 9
-          name: WINSLOW_$TAG-${{ github.run_id }}
+          name: winslow:$GITHUB_REF_NAME-${{ github.run_id }}
           path: |
             *.tar
 
-      - name: Smoke test winslow:${{ env.TAG }}
+      - name: Smoke test winslow:$GITHUB_REF_NAME
         run: |
-          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW:$TAG
+          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock winslow:$GITHUB_REF_NAME
           success=false
           for i in {1..20}; do
             echo "Attempt $i: Checking if application is up..."
@@ -187,7 +182,9 @@ jobs:
   publish-validator:
     runs-on: ubuntu-latest
     needs:
-      - smoke-test
+      - build-winslow-image-and-smoke-test
+    outputs:
+      TAG: ${{ steps.determine_tag.outputs.TAG }}
     steps:
       - name: Determine image tag
         id: determine_tag
@@ -200,73 +197,32 @@ jobs:
             TAG=${GITHUB_REF_NAME}-dev
           fi 
           echo $TAG
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
   publish-winslow-image:
     runs-on: ubuntu-latest
-    if: ${{ env.TAG }} != ''
+    if: needs.publish-validator.outputs.TAG != ''
     needs:
       - publish-validator
+    env:
+      TAG: ${{ needs.publish-validator.outputs.TAG }}
+      IMAGE_WINSLOW: ${{ vars.DOCKER_REGISTRY_WINSLOW }}
     steps:
       - uses: actions/checkout@v4
-      - name: Download backend
+
+      - name: Download winslow:$GITHUB_REF_NAME-${{ github.run_id }}
         uses: actions/download-artifact@v4
         with:
-          name: jar-files-${{ github.run_id }}
+          name: winslow:$GITHUB_REF_NAME-${{ github.run_id }}
           path: .
-      - name: Build backend image
-        run: |
-          docker build . -t $IMAGE_SERVER
 
-      - name: Download frontend
-        uses: actions/download-artifact@v4
-        with:
-          name: winslow-ui-ng_${{ github.run_id }}
-          path: ./winslow-ui-ng
-      - name: Build frontend image
+      - name: Import winslow:$GITHUB_REF_NAME image
         run: |
-          mv winslow-ui-ng ui-ng/winslow-ui-ng
-          cd ui-ng
-          docker build . -t $IMAGE_HTML
+          docker import winslow:$GITHUB_REF_NAME.tar
 
-      - name: Build winslow:${{ env.TAG }}
+      - name: Tag winslow:$GITHUB_REF_NAME image
         run: |
-          cd node
-          docker build . -t $IMAGE_WINSLOW:$TAG --build-arg COMPONENT_HTML=$IMAGE_HTML --build-arg COMPONENT_SERVER=$IMAGE_SERVER
-
-      - name: Prepare upload of winslow:${{ env.TAG }} image to github
-        run: |
-          docker save $IMAGE_WINSLOW:$TAG -o ${IMAGE_WINSLOW}-${TAG}.tar
-      - name: Upload winslow:${{ env.TAG }} image to github
-        uses: actions/upload-artifact@v4
-        with:
-          retention-days: 1
-          compression-level: 9
-          name: $IMAGE_WINSLOW:$TAG-${{ github.run_id }}
-          path: |
-            *.tar
-
-      - name: Smoke test winslow:${{ env.TAG }}
-        run: |
-          docker run -it -d --rm -e WINSLOW_DEV_ENV=true -e WINSLOW_DEV_REMOTE_USER=example -e WINSLOW_ROOT_USERS=example -e WINSLOW_WORK_DIRECTORY=/tmp/workdir -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock $IMAGE_WINSLOW:$TAG
-          success=false
-          for i in {1..20}; do
-            echo "Attempt $i: Checking if application is up..."
-            if curl -s -X GET "http://localhost:8080/api/v1/users" -H "accept: */*" | grep -q example; then
-              echo "Application is up and running, and User 'example' was found."
-              success=true
-              break
-              else
-                echo "Application is not ready yet or User 'example' was not found. Retrying in 5 seconds..."
-                sleep 5
-            fi
-            done
-          
-            if [[ "$success" == false ]]; then
-              echo "Failed to connect to application or 'example' was not found after $i tries."
-              echo "Smoke test failed."
-              exit 1
-            fi
+          docker tag winslow:$GITHUB_REF_NAME $IMAGE_WINSLOW:$TAG
 
       - name: Dockerhub login
         env:
