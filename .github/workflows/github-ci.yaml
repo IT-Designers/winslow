@@ -204,7 +204,7 @@ jobs:
 
   publish-winslow-image:
     runs-on: ubuntu-latest
-    if: env.TAG != ''
+    if: ${{ env.TAG }} != ''
     needs:
       - publish-validator
     steps:
