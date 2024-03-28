@@ -6,8 +6,14 @@ on:
     tags:
       - '**'
   workflow_dispatch:
+    inputs:
+      docker_image_tag:
+        description: 'Docker Image Tag'
+        required: false
+        default: 'latest'
     branches:
       - '**'
+
 
 jobs:
   variables:
@@ -226,7 +232,9 @@ jobs:
       - name: Determine image tag
         id: determine_tag
         run: |
-          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+          if [[ "${{ github.event.inputs.docker_image_tag }}" != "" ]]; then
+            TAG=${{ github.event.inputs.docker_image_tag }}
+          elif [[ "$GITHUB_REF_NAME" == "master" ]]; then
             TAG=latest
           elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
             TAG=${GITHUB_REF_NAME}
