@@ -24,7 +24,7 @@ jobs:
         id: variables
         run: |
           GITHUB_SHA7=$(git rev-parse --short=7 ${{ github.sha }})
-          APPENDIX=branch-${{ github.ref_name }}-commit-$GITHUB_SHA7-job-${{ github.run_id }}
+          APPENDIX=branch-${{ github.ref_name }}-commit-$GITHUB_SHA7-job-${{ github.run_number }}
           echo "GITHUB_SHA7=$GITHUB_SHA7" >> $GITHUB_OUTPUT
           echo "APPENDIX=$APPENDIX" >> $GITHUB_OUTPUT
           echo "SERVER_ARTIFACT=jar-$APPENDIX" >> $GITHUB_OUTPUT
